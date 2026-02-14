@@ -22,36 +22,36 @@
     <script type="text/babel">
       const { useState } = React;
 
-      // helper: fake TTD data in minutes
+      // fake TTD data in minutes (for usage stats)
       const SAMPLE_TTD = [14, 12, 11, 10, 9, 8, 8, 7];
       const BASELINE_TTD = 22;
 
-      // global data-source health
+      // global organizational data source health (system level, not per case)
       const DATA_SOURCES = [
         {
-          name: "EMR",
-          type: "Clinical Records",
+          name: "EMR Core",
+          type: "Clinical Records & Notes",
           status: "Healthy",
           latency: "< 2s",
           lastSync: "2026-02-14 23:39",
         },
         {
-          name: "ERP",
-          type: "Scheduling & Billing",
+          name: "ERP Ops",
+          type: "Scheduling, Billing & Inventory",
           status: "Degraded",
-          latency: " ~5s",
+          latency: "~5s",
           lastSync: "2026-02-14 23:37",
         },
         {
-          name: "CRM",
-          type: "Provider Network",
+          name: "Provider CRM",
+          type: "Provider & Referral Network",
           status: "Healthy",
           latency: "< 1s",
           lastSync: "2026-02-14 23:38",
         },
         {
-          name: "Payer API",
-          type: "Eligibility & Benefits",
+          name: "Payer Access API",
+          type: "Eligibility, Benefits & Prior Auth",
           status: "Healthy",
           latency: "< 3s",
           lastSync: "2026-02-14 23:40",
@@ -87,7 +87,7 @@
               },
             ],
             auditTrail: {
-              sources: ["EMR", "Payer API", "Lab Systems"],
+              sources: ["EMR", "Payer Access API", "Lab Systems"],
               events: [
                 {
                   ts: "2026-02-14 10:32",
@@ -97,7 +97,7 @@
                 {
                   ts: "2026-02-14 10:33",
                   actor: "AI Agent",
-                  action: "Queried payer benefits (Payer API)",
+                  action: "Queried payer benefits (Payer Access API)",
                 },
                 {
                   ts: "2026-02-14 10:34",
@@ -123,7 +123,7 @@
             submittedAt: "2026-02-13 16:10",
             history: [],
             auditTrail: {
-              sources: ["EMR", "Imaging Archive"],
+              sources: ["EMR Core", "Imaging Archive"],
               events: [
                 {
                   ts: "2026-02-13 16:10",
@@ -162,7 +162,7 @@
               },
             ],
             auditTrail: {
-              sources: ["EMR", "Lab Systems", "ERP"],
+              sources: ["EMR Core", "Lab Systems", "ERP Ops"],
               events: [
                 {
                   ts: "2026-02-14 21:47",
@@ -209,7 +209,7 @@
               },
             ],
             auditTrail: {
-              sources: ["EMR", "ERP"],
+              sources: ["EMR Core", "ERP Ops"],
               events: [
                 {
                   ts: "2026-01-20 09:00",
@@ -235,6 +235,7 @@
         const [modalType, setModalType] = useState("");
         const [justification, setJustification] = useState("");
         const [showUsageModal, setShowUsageModal] = useState(false);
+        const [showSourcePanel, setShowSourcePanel] = useState(false);
 
         const filteredRequests = requests.filter((r) =>
           activeTab === "Pending" ? r.status === "Pending" : r.status !== "Pending"
@@ -314,6 +315,14 @@
           }
         };
 
+        const getSourceBadgeClasses = (status) => {
+          if (status === "Healthy")
+            return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/40";
+          if (status === "Degraded")
+            return "bg-amber-500/10 text-amber-400 border border-amber-500/40";
+          return "bg-red-500/10 text-red-400 border border-red-500/40";
+        };
+
         const avgTTD = selectedRequest?.avgTTD ?? 9;
         const timeSaved = Math.max(BASELINE_TTD - avgTTD, 0);
         const timeSavedPct =
@@ -325,14 +334,6 @@
           remaining: 0,
         };
 
-        const getSourceBadgeClasses = (status) => {
-          if (status === "Healthy")
-            return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/40";
-          if (status === "Degraded")
-            return "bg-amber-500/10 text-amber-400 border border-amber-500/40";
-          return "bg-red-500/10 text-red-400 border border-red-500/40";
-        };
-
         return (
           <div className="flex flex-col md:flex-row h-screen bg-[#020617] text-slate-200 font-sans overflow-hidden">
             {/* Sidebar */}
@@ -341,7 +342,6 @@
                 J
               </div>
               <div className="flex md:flex-col gap-4 md:gap-6 text-slate-500 text-xl md:text-base">
-                {/* Inbox */}
                 <button
                   title="Inbox"
                   onClick={() => setActiveTab("Pending")}
@@ -351,7 +351,6 @@
                 >
                   📥
                 </button>
-                {/* History / Processed */}
                 <button
                   title="History"
                   onClick={() => setActiveTab("Processed")}
@@ -361,7 +360,6 @@
                 >
                   🕒
                 </button>
-                {/* Activity / Usage & Logs */}
                 <button
                   title="Usage & Logs"
                   onClick={() => setShowUsageModal(true)}
@@ -374,37 +372,103 @@
 
             {/* Inbox Column */}
             <div className="w-full md:w-[38%] border-b md:border-b-0 md:border-r border-slate-800 flex flex-col bg-[#020617]/50 max-h-[50vh] md:max-h-full">
-              <div className="p-4 md:p-6 border-b border-slate-800">
-                <h1 className="text-lg md:text-xl font-bold text-white mb-3 md:mb-4 tracking-tight">
-                  Clinical Decision Inbox
-                </h1>
-                <div className="flex gap-6">
-                  <button
-                    onClick={() => setActiveTab("Pending")}
-                    className={`pb-2 text-xs font-bold uppercase tracking-wider transition-all relative ${
-                      activeTab === "Pending"
-                        ? "text-white"
-                        : "text-slate-500 hover:text-slate-300"
-                    }`}
-                  >
-                    Pending
-                    {activeTab === "Pending" && (
-                      <div className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
+              <div className="p-4 md:p-6 border-b border-slate-800 relative">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h1 className="text-lg md:text-xl font-bold text-white mb-2 tracking-tight">
+                      Clinical Decision Inbox
+                    </h1>
+                    <div className="flex gap-6">
+                      <button
+                        onClick={() => setActiveTab("Pending")}
+                        className={`pb-2 text-xs font-bold uppercase tracking-wider transition-all relative ${
+                          activeTab === "Pending"
+                            ? "text-white"
+                            : "text-slate-500 hover:text-slate-300"
+                        }`}
+                      >
+                        Pending
+                        {activeTab === "Pending" && (
+                          <div className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("Processed")}
+                        className={`pb-2 text-xs font-bold uppercase tracking-wider transition-all relative ${
+                          activeTab === "Processed"
+                            ? "text-white"
+                            : "text-slate-500 hover:text-slate-300"
+                        }`}
+                      >
+                        Processed
+                        {activeTab === "Processed" && (
+                          <div className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* System data sources compact status */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowSourcePanel((v) => !v)}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700 hover:border-emerald-500/70 hover:bg-slate-900/80 transition text-[10px] font-mono"
+                    >
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                      </span>
+                      <span className="uppercase tracking-widest text-slate-300">
+                        Data Sources
+                      </span>
+                      <span className="text-slate-500">
+                        ({DATA_SOURCES.length})
+                      </span>
+                    </button>
+
+                    {showSourcePanel && (
+                      <div className="absolute right-0 mt-2 w-72 md:w-80 bg-[#020617] border border-slate-800 rounded-2xl shadow-xl p-3 z-20">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                            Connected Systems
+                          </p>
+                          <span className="text-[10px] font-mono text-emerald-400">
+                            All critical reachable
+                          </span>
+                        </div>
+                        <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                          {DATA_SOURCES.map((s) => (
+                            <div
+                              key={s.name}
+                              className="flex items-center justify-between bg-slate-900/60 border border-slate-800 rounded-xl px-2.5 py-1.5"
+                            >
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[11px] font-mono text-slate-300">
+                                    {s.name}
+                                  </span>
+                                  <span
+                                    className={`text-[9px] px-1.5 py-0.5 rounded-full ${getSourceBadgeClasses(
+                                      s.status
+                                    )}`}
+                                  >
+                                    {s.status}
+                                  </span>
+                                </div>
+                                <p className="text-[10px] text-slate-500">
+                                  {s.type}
+                                </p>
+                              </div>
+                              <div className="text-right text-[9px] text-slate-500">
+                                <p>Last: {s.lastSync}</p>
+                                <p>Latency: {s.latency}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("Processed")}
-                    className={`pb-2 text-xs font-bold uppercase tracking-wider transition-all relative ${
-                      activeTab === "Processed"
-                        ? "text-white"
-                        : "text-slate-500 hover:text-slate-300"
-                    }`}
-                  >
-                    Processed
-                    {activeTab === "Processed" && (
-                      <div className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
-                    )}
-                  </button>
+                  </div>
                 </div>
               </div>
 
@@ -499,20 +563,24 @@
 
                   {/* Federated Data Grid + Usage Stats */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
-                    <SnapshotCard title="Patient Profile" source="EMR">
+                    <SnapshotCard title="Patient Profile" source="EMR Core">
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between text-slate-500">
                           <span>Age</span>
-                          <span className="text-slate-200">{profile.age}</span>
+                          <span className="text-slate-200">
+                            {profile.age}
+                          </span>
                         </div>
                         <div className="flex justify-between text-slate-500">
                           <span>BMI</span>
-                          <span className="text-slate-200">{profile.bmi}</span>
+                          <span className="text-slate-200">
+                            {profile.bmi}
+                          </span>
                         </div>
                       </div>
                     </SnapshotCard>
 
-                    <SnapshotCard title="Insurance Status" source="Payer API">
+                    <SnapshotCard title="Insurance Status" source="Payer Access API">
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between text-slate-500">
                           <span>Coverage</span>
@@ -550,7 +618,6 @@
                         </div>
                       </div>
 
-                      {/* tiny bar chart + baseline line */}
                       <div className="relative h-16 mb-2">
                         <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-slate-700"></div>
                         <div className="absolute inset-0 flex items-end gap-1">
@@ -605,54 +672,6 @@
                           {(timeSaved * SAMPLE_TTD.length) % 60}m
                         </span>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Global data source health */}
-                  <div className="mb-8 bg-slate-950/60 border border-slate-800 rounded-2xl p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                          Data Source Health
-                        </p>
-                        <p className="text-xs text-slate-400">
-                          Organizational systems monitored continuously for
-                          connection & freshness.
-                        </p>
-                      </div>
-                      <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                        All critical sources reachable
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {DATA_SOURCES.map((s) => (
-                        <div
-                          key={s.name}
-                          className="flex items-center justify-between bg-slate-900/60 border border-slate-800 rounded-xl px-3 py-2"
-                        >
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-mono text-slate-500">
-                                {s.name}
-                              </span>
-                              <span
-                                className={`text-[10px] px-2 py-0.5 rounded-full ${getSourceBadgeClasses(
-                                  s.status
-                                )}`}
-                              >
-                                {s.status}
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-slate-400">
-                              {s.type}
-                            </p>
-                          </div>
-                          <div className="text-right text-[10px] text-slate-500">
-                            <p>Last sync: {s.lastSync}</p>
-                            <p className="mt-0.5">Latency: {s.latency}</p>
-                          </div>
-                        </div>
-                      ))}
                     </div>
                   </div>
 
@@ -762,9 +781,8 @@
                     )}
                   </div>
 
-                  {/* Audit Trail + Timeline per case */}
+                  {/* Per-case Audit Trail + Timeline */}
                   <div className="mt-10 md:mt-12 grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-8 pb-10 md:pb-12">
-                    {/* Audit trail */}
                     <div className="border border-slate-800 rounded-2xl p-4 bg-slate-950/40">
                       <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
                         <span>🔎</span>
@@ -800,7 +818,6 @@
                       </div>
                     </div>
 
-                    {/* Timeline */}
                     <div className="border-t border-slate-800/60 pt-6 lg:border-t-0 lg:pt-0">
                       <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
                         <span className="w-5 h-5 text-slate-500">🕒</span>
@@ -930,7 +947,6 @@
                   </div>
 
                   <div className="p-5 grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-6">
-                    {/* Global TTD chart */}
                     <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div>
@@ -963,7 +979,6 @@
                       </div>
                     </div>
 
-                    {/* Recent decisions */}
                     <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4">
                       <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">
                         Recent Decisions
