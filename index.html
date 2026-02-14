@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeen.ai - Enterprise Decision Intelligence</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jeen.ai – Treatment Approval Inbox</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; direction: ltr; }
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+        body { font-family: "Inter", sans-serif; direction: ltr; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #020617; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
         .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.15); }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        .animate-fade-in { animation: fadeIn 0.25s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -25,183 +25,301 @@
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
-        
+
         const Icon = ({ name, className = "w-4 h-4" }) => {
             const iconRef = useRef(null);
             useEffect(() => {
                 if (window.lucide && iconRef.current) {
-                    iconRef.current.innerHTML = '';
-                    const iconElement = document.createElement('span');
-                    iconElement.setAttribute('data-lucide', name);
-                    iconRef.current.appendChild(iconElement);
+                    iconRef.current.innerHTML = "";
+                    const span = document.createElement("span");
+                    span.setAttribute("data-lucide", name);
+                    iconRef.current.appendChild(span);
                     window.lucide.createIcons({ attrs: { class: className } });
                 }
             }, [name, className]);
-            return <span ref={iconRef} className="inline-flex items-center"></span>;
+            return <span ref={iconRef} className="inline-flex items-center" />;
         };
 
-        const App = () => {
-            const initialRequests = [
-                { 
-                    id: "REQ-101", 
-                    patient: "Alice Winston", 
-                    action: "GLP-1 Medication Approval", 
-                    status: "Pending", 
-                    confidence: 98, 
-                    timeSaved: "1.2h",
-                    explanation: "The system cross-referenced lab results (HbA1c > 8.5) with the latest insurance policy. It was found that the patient failed previous Metformin treatment, qualifying her for automatic approval under the 'Step-Up' protocol.",
-                    sources: ["EMR Lab Results", "Insurance Policy PDF", "Pharmacy History"]
+        const initialRequests = [
+            {
+                id: "TRT-APR-2026-0234",
+                type: "Treatment",
+                patient: "Alice Winston",
+                patientId: "Patient 1234",
+                action: "GLP-1 Therapy Initiation",
+                status: "Pending",
+                confidence: 98,
+                timeSaved: "1.2h",
+                factors: [
+                    "HbA1c > 8.5",
+                    "Previous Metformin failure",
+                    "Meets Step-Up protocol criteria",
+                    "Within GLP-1 coverage rules",
+                    "No contraindications detected",
+                    "Adherence risk acceptable",
+                    "Financial limit not exceeded"
+                ],
+                snapshot: {
+                    patientProfile: {
+                        age: 45,
+                        bmi: 32,
+                        comorbidities: "Hypertension",
+                        history: "2024-01, 2025-06, 2025-12"
+                    },
+                    clinicalContext: {
+                        diagnosis: "Type 2 Diabetes",
+                        hba1c: "8.5%",
+                        protocol: "DM-2023",
+                        therapies: "Metformin, SGLT2"
+                    },
+                    insuranceStatus: {
+                        coverage: "80%",
+                        limit: "$42,000",
+                        plan: "Gold Plus 2025"
+                    },
+                    riskUtilization: {
+                        readmission: "0.35 (Medium)",
+                        hospitalizations: "2 in last 12 months",
+                        adherence: "Medium"
+                    }
                 },
-                { 
-                    id: "REQ-102", 
-                    patient: "James Miller", 
-                    action: "Inpatient Stay Extension", 
-                    status: "Pending", 
-                    confidence: 84, 
-                    timeSaved: "0.8h",
-                    explanation: "NLP analysis of nurse notes identified a fever spike in the last 24 hours. CRP levels indicate active inflammation. AI recommends a 2-day extension to prevent readmission risk.",
-                    sources: ["Nurse Notes", "Vital Signs Flowsheet", "Readmission Risk Model"]
+                explanation:
+                    "The system cross-referenced recent lab results (HbA1c > 8.5) with payer policy and prior medication history. The patient failed Metformin and meets the DM-2023 Step-Up protocol for GLP-1 initiation, within coverage and remaining financial limits.",
+                sources: ["EMR Labs", "EMR Problem List", "Payer Policy PDF", "Pharmacy History"],
+                memory: [
+                    "2025-12-10 – GLP-1 Dose Adjustment – Approved – Outcome: HbA1c improved from 9.2% → 8.1% in 3 months.",
+                    "2025-06-02 – Imaging Request – Approved – Outcome: No complications detected.",
+                    "2024-01-15 – Hospitalization Approval – Approved – Outcome: 2 days shorter LOS vs cohort."
+                ]
+            },
+            {
+                id: "TRT-APR-2026-0235",
+                type: "Imaging",
+                patient: "James Miller",
+                patientId: "Patient 5678",
+                action: "Brain MRI Approval",
+                status: "Pending",
+                confidence: 92,
+                timeSaved: "0.9h",
+                factors: [
+                    "Persistent neurological symptoms",
+                    "No response to conservative therapy",
+                    "Clinical guideline recommends MRI",
+                    "Recent tele-visit notes confirm deficits"
+                ],
+                snapshot: {
+                    patientProfile: {
+                        age: 54,
+                        bmi: 29,
+                        comorbidities: "Hypertension",
+                        history: "2023-03, 2024-11"
+                    },
+                    clinicalContext: {
+                        diagnosis: "Suspected Neurological Disorder",
+                        hba1c: "N/A",
+                        protocol: "NEURO-IMAGING-01",
+                        therapies: "Analgesics, physiotherapy"
+                    },
+                    insuranceStatus: {
+                        coverage: "90%",
+                        limit: "$58,000",
+                        plan: "Neuro Care 2024"
+                    },
+                    riskUtilization: {
+                        readmission: "0.22 (Low)",
+                        hospitalizations: "0 in last 12 months",
+                        adherence: "High"
+                    }
                 },
-                { 
-                    id: "REQ-103", 
-                    patient: "Sarah Cohen", 
-                    action: "Brain MRI Approval", 
-                    status: "Approved", 
-                    confidence: 94, 
-                    timeSaved: "1.5h",
-                    explanation: "Evidence of neurological symptoms documented in the CRM over the last month was found. Clinical protocols mandate imaging if there is no response to conservative treatment. All criteria met.",
-                    sources: ["Neurology Clinical Notes", "Prior Auth Guidelines"]
-                },
-                { 
-                    id: "REQ-104", 
-                    patient: "David Levy", 
-                    action: "Home Physiotherapy", 
-                    status: "Pending", 
-                    confidence: 91, 
-                    timeSaved: "0.5h",
-                    explanation: "Weighted patient age (82) and mobility constraints documented in the HR system. AI identified that home-based care costs 30% less than medical transport to a day center.",
-                    sources: ["Patient Demographics", "Cost-Benefit Engine", "Mobility Assessment"]
-                },
-                { 
-                    id: "REQ-105", 
-                    patient: "Miriam Abu-Kasis", 
-                    action: "Genetic Testing (OncoType)", 
-                    status: "Pending", 
-                    confidence: 76, 
-                    timeSaved: "2.1h",
-                    explanation: "System detected a 1.2cm tumor with positive receptors. Scanning against Jeen's knowledge base showed that approving this test will prevent unnecessary chemotherapy in 85% of similar cases.",
-                    sources: ["Pathology Report", "Genomic Research DB", "Oncology Protocol"]
-                },
-                { 
-                    id: "REQ-106", 
-                    patient: "Yossi Rafaeli", 
-                    action: "Urgent Cataract Surgery", 
-                    status: "Pending", 
-                    confidence: 95, 
-                    timeSaved: "1.1h",
-                    explanation: "Visual acuity test showed a drop below the functional threshold. System synced surgeon calendars and identified a slot tomorrow due to a cancellation, recommending a schedule bump.",
-                    sources: ["Ophthalmology Exam", "Surgeon Scheduling", "Visual Acuity Logs"]
-                },
-                { 
-                    id: "REQ-107", 
-                    patient: "Linda Gray", 
-                    action: "CPAP Device for Sleep", 
-                    status: "Pending", 
-                    confidence: 89, 
-                    timeSaved: "0.7h",
-                    explanation: "Sleep lab report showed an AHI index of 22. System verified the patient meets BMI criteria and documented daytime fatigue complaints as noted in the recent telemedicine transcript.",
-                    sources: ["Sleep Study PDF", "Telemedicine Transcript", "BMI Data"]
-                }
-            ];
+                explanation:
+                    "Neurology notes and telemedicine transcripts show persistent focal deficits despite conservative therapy. Clinical imaging pathway NEURO-IMAGING-01 mandates MRI under these conditions and the payer policy confirms coverage.",
+                sources: ["Neurology Notes", "Telemedicine Transcript", "Imaging Guidelines", "Payer Rules"],
+                memory: [
+                    "2025-09-03 – Brain MRI – Approved – Outcome: Early lesion detected, treated promptly.",
+                    "2024-07-19 – Spine MRI – Approved – Outcome: Avoided unnecessary exploratory surgery."
+                ]
+            }
+        ];
 
+        const App = () => {
             const [requests, setRequests] = useState(initialRequests);
-            const [selectedId, setSelectedId] = useState("REQ-101");
+            const [selectedId, setSelectedId] = useState(initialRequests[0].id);
             const [showWhy, setShowWhy] = useState(false);
-            const current = requests.find(r => r.id === selectedId);
+            const [showJson, setShowJson] = useState(false);
+            const current = requests.find((r) => r.id === selectedId);
 
             const handleApprove = () => {
-                setRequests(prev => prev.map(r => r.id === selectedId ? { ...r, status: "Approved" } : r));
+                setRequests((prev) =>
+                    prev.map((r) =>
+                        r.id === selectedId ? { ...r, status: "Approved" } : r
+                    )
+                );
             };
+
+            const buildDecisionObject = (req) => ({
+                decision_id: req.id,
+                decision_type: "Treatment Approval",
+                patient_id: req.patientId,
+                unified_data: {
+                    patient_profile: {
+                        source: "EMR System",
+                        age: req.snapshot.patientProfile.age,
+                        bmi: req.snapshot.patientProfile.bmi,
+                        history: req.snapshot.patientProfile.history,
+                        comorbidities: req.snapshot.patientProfile.comorbidities
+                    },
+                    insurance_status: {
+                        source: "Payer System",
+                        coverage_percent: req.snapshot.insuranceStatus.coverage,
+                        remaining_limit: req.snapshot.insuranceStatus.limit,
+                        plan: req.snapshot.insuranceStatus.plan
+                    },
+                    clinical_context: {
+                        source: "Clinical Notes & Guidelines",
+                        diagnosis: req.snapshot.clinicalContext.diagnosis,
+                        hba1c: req.snapshot.clinicalContext.hba1c,
+                        protocol: req.snapshot.clinicalContext.protocol,
+                        previous_therapies: req.snapshot.clinicalContext.therapies
+                    },
+                    risk_utilization: {
+                        source: "Analytics",
+                        readmission_risk: req.snapshot.riskUtilization.readmission,
+                        previous_hospitalizations_12m: req.snapshot.riskUtilization.hospitalizations,
+                        adherence_risk: req.snapshot.riskUtilization.adherence
+                    }
+                },
+                ai_signals: {
+                    risk_score: current.confidence >= 95 ? 0.1 : 0.25,
+                    urgency: "High",
+                    policy_compliance: "Approved"
+                },
+                recommendation: {
+                    action: "Approve",
+                    reasoning: req.explanation
+                },
+                outcome: {
+                    decision: req.status,
+                    approver: "Medical Director",
+                    time_to_decision_seconds: 45
+                }
+            });
 
             return (
                 <div className="flex h-screen w-full bg-[#020617] select-none text-left" dir="ltr">
-                    {/* Inbox Sidebar */}
+                    {/* LEFT – Inbox */}
                     <div className="w-80 border-r border-slate-800 flex flex-col bg-[#030712] shadow-2xl z-20">
-                        <div className="p-6 border-b border-slate-800 flex items-center gap-3">
-                            <div className="w-9 h-9 bg-cyan-600 rounded-xl flex items-center justify-center font-black text-white italic shadow-lg shadow-cyan-500/20">J</div>
-                            <div>
-                                <h1 className="text-sm font-bold text-white leading-none tracking-tight">Jeen.ai</h1>
-                                <p className="text-[9px] text-slate-500 uppercase tracking-widest mt-1 font-bold italic">Decision Engine</p>
+                        <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 bg-cyan-600 rounded-xl flex items-center justify-center font-black text-white italic shadow-lg shadow-cyan-500/20">
+                                    J
+                                </div>
+                                <div>
+                                    <h1 className="text-sm font-bold text-white leading-none tracking-tight">
+                                        Jeen.ai
+                                    </h1>
+                                    <p className="text-[9px] text-slate-500 uppercase tracking-widest mt-1 font-bold italic">
+                                        Approval Inbox
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                        
+
                         <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
-                            {requests.map(req => (
-                                <div 
+                            {requests.map((req) => (
+                                <div
                                     key={req.id}
-                                    onClick={() => { setSelectedId(req.id); setShowWhy(false); }}
-                                    className={`p-3 rounded-xl border transition-all duration-200 cursor-pointer ${selectedId === req.id ? 'bg-slate-800/40 border-cyan-500/40 glow-cyan' : 'border-transparent hover:bg-slate-900/40'}`}
+                                    onClick={() => {
+                                        setSelectedId(req.id);
+                                        setShowWhy(false);
+                                    }}
+                                    className={`p-3 rounded-xl border transition-all duration-200 cursor-pointer ${
+                                        selectedId === req.id
+                                            ? "bg-slate-800/40 border-cyan-500/40 glow-cyan"
+                                            : "border-transparent hover:bg-slate-900/40"
+                                    }`}
                                 >
                                     <div className="flex justify-between items-start mb-1">
-                                        <span className="text-[9px] font-mono text-slate-600">{req.id}</span>
-                                        <div className={`w-2 h-2 rounded-full ${req.status === 'Approved' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 'bg-amber-500'}`}></div>
+                                        <span className="text-[9px] font-mono text-slate-600">
+                                            {req.id}
+                                        </span>
+                                        <div className="flex items-center gap-1">
+                                            <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-bold uppercase ${req.status === 'Approved' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                                                {req.status}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <h3 className="text-[11px] font-bold text-slate-200 leading-tight">{req.action}</h3>
+                                    <h3 className="text-[11px] font-bold text-slate-200 leading-tight">
+                                        {req.action}
+                                    </h3>
                                     <div className="flex justify-between mt-2 items-center">
-                                        <p className="text-[10px] text-slate-500 truncate w-32">{req.patient}</p>
-                                        <span className="text-[9px] text-cyan-500/80 font-bold tracking-tighter">{req.confidence}% AI</span>
+                                        <p className="text-[10px] text-slate-500 truncate w-32">
+                                            {req.patient}
+                                        </p>
+                                        <span className="text-[9px] text-cyan-500/80 font-bold tracking-tighter">
+                                            {req.confidence}% AI
+                                        </span>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        
+
                         <div className="p-4 border-t border-slate-800 bg-slate-950/80">
                             <div className="flex items-center justify-between text-[10px] font-black uppercase text-slate-500 mb-2">
-                                <span>Shift Efficiency</span>
-                                <span className="text-emerald-500">+4.2h Saved Total</span>
+                                <span>Shift ROI</span>
+                                <span className="text-emerald-500">+2.1h Saved</span>
                             </div>
                             <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                <div className="w-[82%] h-full bg-emerald-500"></div>
+                                <div className="w-[78%] h-full bg-emerald-500"></div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Main Analysis Area */}
-                    <div className="flex-1 flex flex-col overflow-hidden relative bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-cyan-950/10 via-transparent to-transparent">
-                        
+                    {/* RIGHT – Main area */}
+                    <div className="flex-1 flex flex-col overflow-hidden relative bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-cyan-950/10 via-transparent to-transparent text-left">
+                        {/* Header */}
                         <div className="p-8 pb-4 flex justify-between items-start">
-                            <div className="animate-fade-in text-left">
+                            <div className="animate-fade-in">
                                 <div className="flex items-center gap-2 mb-1">
                                     <span className="text-[10px] text-cyan-500 font-bold uppercase tracking-[0.2em]">Decision Workflow</span>
                                     <span className="text-slate-800 text-xs">/</span>
                                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">{current.id}</span>
                                 </div>
-                                <h2 className="text-3xl font-extrabold text-white tracking-tight">Review Case: {current.patient}</h2>
+                                <h2 className="text-3xl font-extrabold text-white tracking-tight">Case Review: {current.patient}</h2>
                             </div>
-                            <div className="flex gap-3">
-                                <div className="px-4 py-2 bg-slate-900/60 border border-slate-800 rounded-xl flex items-center gap-2 text-[10px] font-bold text-slate-400 backdrop-blur-md">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                    SECURE ON-PREM ENVIRONMENT
-                                </div>
+                            <div className="px-4 py-2 bg-slate-900/60 border border-slate-800 rounded-xl flex items-center gap-2 text-[10px] font-bold text-slate-400 backdrop-blur-md">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                SECURE ON-PREM ENVIRONMENT
                             </div>
                         </div>
 
+                        {/* Content Scroll Area */}
                         <div className="flex-1 overflow-y-auto p-8 pt-4 custom-scrollbar">
-                            <div className="max-w-5xl grid grid-cols-12 gap-6">
+                            <div className="max-w-6xl grid grid-cols-12 gap-6">
                                 
+                                {/* Analysis Column */}
                                 <div className="col-span-8 space-y-6">
-                                    {/* Recommendation Engine Card */}
-                                    <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-8 relative overflow-hidden shadow-2xl">
-                                        <div className="absolute -top-10 -right-10 opacity-[0.03] pointer-events-none rotate-12">
-                                            <Icon name="Cpu" className="w-72 h-72" />
+                                    
+                                    {/* Unified Snapshot Cards */}
+                                    <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Unified Clinical Snapshot</p>
+                                            <span className="px-2 py-1 rounded-full bg-slate-950 border border-slate-800 text-[9px] uppercase text-slate-400 font-bold">ID: {current.patientId}</span>
                                         </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <SnapshotCard title="Patient Profile" data={[ ["Age", current.snapshot.patientProfile.age], ["BMI", current.snapshot.patientProfile.bmi], ["Comorbidities", current.snapshot.patientProfile.comorbidities] ]} />
+                                            <SnapshotCard title="Clinical Context" data={[ ["Diagnosis", current.snapshot.clinicalContext.diagnosis], ["Protocol", current.snapshot.clinicalContext.protocol], ["Previous therapies", current.snapshot.clinicalContext.therapies] ]} />
+                                            <SnapshotCard title="Insurance Status" data={[ ["Coverage", current.snapshot.insuranceStatus.coverage], ["Remaining limit", current.snapshot.insuranceStatus.limit], ["Plan", current.snapshot.insuranceStatus.plan] ]} />
+                                            <SnapshotCard title="Risk & Utilization" data={[ ["Readmission risk", current.snapshot.riskUtilization.readmission], ["Hospitalizations", current.snapshot.riskUtilization.hospitalizations], ["Adherence", current.snapshot.riskUtilization.adherence] ]} />
+                                        </div>
+                                    </div>
 
-                                        <div className="flex items-start justify-between mb-8 relative z-10">
+                                    {/* Action Card */}
+                                    <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-8 relative overflow-hidden shadow-2xl">
+                                        <div className="absolute -top-10 -right-10 opacity-[0.03] pointer-events-none rotate-12"><Icon name="Cpu" className="w-72 h-72" /></div>
+                                        <div className="flex items-start justify-between mb-6 relative z-10">
                                             <div className="flex items-center gap-5">
-                                                <div className="w-14 h-14 bg-cyan-600/10 border border-cyan-500/20 rounded-2xl flex items-center justify-center text-cyan-400 shadow-inner">
-                                                    <Icon name="Sparkles" className="w-8 h-8" />
-                                                </div>
-                                                <div className="text-left">
+                                                <div className="w-14 h-14 bg-cyan-600/10 border border-cyan-500/20 rounded-2xl flex items-center justify-center text-cyan-400 shadow-inner"><Icon name="Sparkles" className="w-8 h-8" /></div>
+                                                <div>
                                                     <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Jeen.ai Suggested Action</p>
                                                     <h3 className="text-2xl font-bold text-white tracking-tight italic">Recommended: {current.status === 'Approved' ? 'Completed' : 'Approve'}</h3>
                                                 </div>
@@ -212,101 +330,77 @@
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-3 gap-4 mb-10 relative z-10">
-                                            <MetricItem label="Decision Standard" value="Verified" sub="Enterprise Policy 2.0" />
-                                            <MetricItem label="Source Quality" value="High" sub={`${current.sources.length} Data Points`} />
-                                            <MetricItem label="Efficiency Impact" value={`+${current.timeSaved}`} sub="Manual Audit Bypassed" />
-                                        </div>
-
                                         <div className="flex gap-4 relative z-10">
-                                            <button 
-                                                onClick={handleApprove}
-                                                className={`flex-1 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all duration-300 ${current.status === 'Approved' ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/20' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-900/50'}`}
-                                            >
+                                            <button onClick={handleApprove} className={`flex-1 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all duration-300 ${current.status === 'Approved' ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/20' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg'}`}>
                                                 {current.status === 'Approved' ? <Icon name="CheckCircle" /> : <Icon name="Zap" />}
-                                                {current.status === 'Approved' ? 'DECISION ARCHIVED' : 'EXECUTE APPROVAL'}
+                                                {current.status === 'Approved' ? 'DECISION LOGGED' : 'EXECUTE APPROVAL'}
                                             </button>
-                                            <button 
-                                                onClick={() => setShowWhy(!showWhy)}
-                                                className={`px-8 py-4 rounded-2xl font-bold text-sm border transition-all duration-200 ${showWhy ? 'bg-slate-800 border-cyan-500/50 text-cyan-400' : 'border-slate-700 text-slate-300 hover:bg-slate-800'} flex items-center gap-2`}
-                                            >
-                                                <Icon name="Search" />
-                                                WHY?
+                                            <button onClick={() => setShowWhy(!showWhy)} className={`px-8 py-4 rounded-2xl font-bold text-sm border transition-all duration-200 flex items-center gap-2 ${showWhy ? 'bg-slate-800 border-cyan-500/50 text-cyan-400' : 'border-slate-700 text-slate-300 hover:bg-slate-800'}`}>
+                                                <Icon name="Search" /> WHY?
                                             </button>
                                         </div>
                                     </div>
 
-                                    {/* Why this decision? - Logic Layer */}
+                                    {/* Why Panel */}
                                     {showWhy && (
                                         <div className="animate-fade-in bg-slate-900/50 border border-cyan-500/20 rounded-3xl p-8 border-l-4">
-                                            <div className="flex items-center justify-between mb-8">
-                                                <h4 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
-                                                    <Icon name="Activity" className="text-cyan-500" />
-                                                    Decision Logic & Data Provenance
-                                                </h4>
-                                                <div className="flex gap-2">
-                                                    {current.sources.map(s => (
-                                                        <span key={s} className="px-2 py-0.5 bg-slate-800 text-[8px] text-slate-400 rounded uppercase font-bold border border-slate-700">{s}</span>
+                                            <div className="mb-6">
+                                                <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-2">Key decision factors ({current.factors.length})</p>
+                                                <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-300">
+                                                    {current.factors.map(f => (
+                                                        <div key={f} className="flex items-center gap-2">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
+                                                            <span>{f}</span>
+                                                        </div>
                                                     ))}
                                                 </div>
                                             </div>
-                                            
-                                            <div className="flex items-center justify-between px-16 relative mb-10">
-                                                <div className="absolute h-[2px] bg-slate-800 left-24 right-24 top-6 z-0"></div>
-                                                <Node icon="Database" label="Records" />
-                                                <Node icon="FileText" label="Policies" />
-                                                <Node icon="ShieldCheck" label="Audit" />
-                                                <div className="w-12 h-12 rounded-2xl bg-cyan-600 flex items-center justify-center z-10 shadow-[0_0_20px_rgba(8,145,178,0.4)]">
-                                                    <Icon name="Cpu" className="text-white w-6 h-6" />
-                                                </div>
-                                            </div>
-
-                                            <div className="bg-slate-950/90 p-6 rounded-2xl border border-slate-800/50 relative">
-                                                <Icon name="Quote" className="absolute top-4 right-4 text-slate-800 w-10 h-10" />
-                                                <p className="text-sm text-slate-400 leading-relaxed font-medium relative z-10 italic">
-                                                    "{current.explanation}"
-                                                </p>
+                                            <div className="bg-slate-950/90 p-6 rounded-2xl border border-slate-800/50 italic text-slate-400 text-sm">
+                                                "{current.explanation}"
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* Decision Object JSON */}
+                                    <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4">
+                                        <button onClick={() => setShowJson(!showJson)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                            <Icon name={showJson ? "ChevronDown" : "ChevronRight"} /> View Decision Object (JSON)
+                                        </button>
+                                        {showJson && (
+                                            <pre className="mt-3 text-[10px] text-slate-400 bg-slate-950/80 p-3 rounded-lg overflow-x-auto custom-scrollbar">
+                                                {JSON.stringify(buildDecisionObject(current), null, 2)}
+                                            </pre>
+                                        )}
+                                    </div>
                                 </div>
 
-                                {/* Summary Sidebar */}
+                                {/* Summary Column */}
                                 <div className="col-span-4 space-y-6">
                                     <div className="bg-slate-900/30 border border-slate-800 rounded-2xl p-6">
-                                        <h4 className="text-[10px] font-black text-slate-500 uppercase mb-4 tracking-widest border-b border-slate-800 pb-2">Analysis Intelligence</h4>
-                                        <div className="space-y-4">
-                                            <DetailRow label="System Origin" value="Multi-Source Federated" />
-                                            <StatRow label="Processing Type" value="On-Prem LLM" />
-                                            <StatRow label="Encryption" value="AES-256 Hub" />
-                                            <StatRow label="Last Update" value="Synced (Real-time)" />
+                                        <h4 className="text-[10px] font-black text-slate-500 uppercase mb-4 tracking-widest border-b border-slate-800 pb-2">Decision Blueprint</h4>
+                                        <div className="space-y-3">
+                                            <DetailRow label="Policy Standard" value="DM-2023 / NEURO-01" />
+                                            <DetailRow label="Automation Mode" value="Human-in-the-loop" />
+                                            <StatRow label="Data Confidence" value="High (Verified)" />
+                                            <StatRow label="Sources Analyzed" value={current.sources.length} />
                                         </div>
                                     </div>
 
-                                    <div className="p-6 bg-gradient-to-br from-cyan-950/40 to-slate-950 border border-cyan-500/20 rounded-2xl shadow-xl relative overflow-hidden group">
-                                        <div className="absolute -bottom-4 -right-4 text-cyan-500/5 group-hover:text-cyan-500/10 transition-colors">
-                                            <Icon name="TrendingUp" className="w-24 h-24" />
-                                        </div>
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <div className="p-1.5 bg-cyan-500/20 rounded-lg">
-                                                <Icon name="Clock" className="text-cyan-400 w-4 h-4" />
-                                            </div>
-                                            <span className="text-[10px] font-black text-cyan-400 uppercase tracking-tight">Shift ROI impact</span>
-                                        </div>
-                                        <p className="text-4xl font-black text-white tracking-tighter">+{current.timeSaved}</p>
-                                        <p className="text-[11px] text-slate-500 mt-2 leading-relaxed font-medium">
-                                            This request was pre-processed by Jeen.ai, eliminating the need for manual data aggregation and cross-referencing.
-                                        </p>
-                                    </div>
-                                    
                                     <div className="bg-slate-900/20 border border-slate-800 rounded-2xl p-6">
-                                        <h4 className="text-[10px] font-black text-slate-500 uppercase mb-3 tracking-widest">Compliance Badge</h4>
-                                        <div className="flex items-center gap-3 bg-emerald-500/5 border border-emerald-500/10 p-3 rounded-xl">
-                                            <Icon name="Shield" className="text-emerald-500 w-5 h-5" />
-                                            <div>
-                                                <p className="text-[10px] font-black text-emerald-400 uppercase">HIPAA/GDPR Ready</p>
-                                                <p className="text-[9px] text-slate-500 leading-none">Zero data leakage detected</p>
-                                            </div>
+                                        <h4 className="text-[10px] font-black text-slate-500 uppercase mb-3 tracking-widest">Digital Boardroom Memory</h4>
+                                        <div className="space-y-3 text-[11px] text-slate-400">
+                                            {current.memory.map((m, idx) => (
+                                                <div key={idx} className="flex gap-2">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 flex-shrink-0"></div>
+                                                    <p>{m}</p>
+                                                </div>
+                                            ))}
+                                            {current.status === 'Approved' && (
+                                                <div className="flex gap-2">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 mt-1 flex-shrink-0"></div>
+                                                    <p className="text-cyan-400">2026-02-14 – Current Action Approved.</p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -318,20 +412,25 @@
             );
         };
 
+        const SnapshotCard = ({ title, data }) => (
+            <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl text-[10px]">
+                <p className="text-slate-500 uppercase font-black mb-2 tracking-tighter opacity-80">{title}</p>
+                <div className="space-y-1">
+                    {data.map(([label, value]) => (
+                        <div key={label} className="flex justify-between border-b border-slate-800/30 pb-1">
+                            <span className="text-slate-500 italic">{label}</span>
+                            <span className="text-slate-300 font-bold">{value}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+
         const MetricItem = ({ label, value, sub }) => (
             <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-2xl text-center">
                 <p className="text-[9px] text-slate-500 uppercase font-black mb-1 tracking-tighter opacity-80">{label}</p>
                 <p className="text-md font-bold text-white tracking-tight">{value}</p>
                 <p className="text-[10px] text-slate-600 mt-1 font-mono italic leading-none">{sub}</p>
-            </div>
-        );
-
-        const Node = ({ icon, label }) => (
-            <div className="flex flex-col items-center gap-2 z-10 group">
-                <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 text-slate-500 flex items-center justify-center shadow-lg group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-all duration-300">
-                    <Icon name={icon} className="w-6 h-6" />
-                </div>
-                <span className="text-[9px] font-black text-slate-600 uppercase tracking-tighter group-hover:text-slate-400">{label}</span>
             </div>
         );
 
