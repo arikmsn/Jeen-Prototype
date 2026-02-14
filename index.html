@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeen.ai - Decision Intelligence Prototype</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; direction: ltr; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    </style>
+</head>
+<body class="bg-[#020617] text-slate-200 overflow-hidden">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        
+        // Robust Lucide Icon Component for CDN/Single-file usage
+        const Icon = ({ name, className = "w-4 h-4" }) => {
+            const iconRef = useRef(null);
+
+            useEffect(() => {
+                if (window.lucide && iconRef.current) {
+                    // Create a temporary span to hold the generated icon
+                    const tempSpan = document.createElement('span');
+                    tempSpan.setAttribute('data-lucide', name);
+                    tempSpan.className = className;
+                    
+                    // Clear and append
+                    iconRef.current.innerHTML = '';
+                    iconRef.current.appendChild(tempSpan);
+                    
+                    // Tell lucide to render icons inside our ref
+                    window.lucide.createIcons({
+                        attrs: { class: className },
+                        nameAttr: 'data-lucide'
+                    });
+                }
+            }, [name, className]);
+
+            return <span ref={iconRef} className="inline-flex items-center justify-center"></span>;
+        };
+
+        const App = () => {
+            const [requests, setRequests] = useState([
+                { requestId: "TRT-APR-2026-0234", patientName: "John Doe", patientId: "Patient 1234", treatment: "GLP-1 Therapy Initiation", type: "Treatment", icon: "🧪", priority: "High", status: "Pending" },
+                { requestId: "TRT-APR-2026-0235", patientName: "Mary Smith", patientId: "Patient 5678", treatment: "MRI Brain Scan", type: "Imaging", icon: "🧠", priority: "Medium", status: "Pending" },
+                { requestId: "TRT-APR-2026-0236", patientName: "Robert Green", patientId: "Patient 9012", treatment: "Inpatient Stay Extension", type: "Stay Extension", icon: "🏥", priority: "Low", status: "Approved" },
+                { requestId: "TRT-APR-2026-0237", patientName: "Emma Brown", patientId: "Patient 3456", treatment: "Advanced Imaging Package", type: "Imaging", icon: "🧠", priority: "High", status: "Escalated" }
+            ]);
+
+            const [selectedId, setSelectedId] = useState("TRT-APR-2026-0234");
+            const [approved, setApproved] = useState(false);
+
+            const selectedRequest = requests.find(r => r.requestId === selectedId);
+
+            useEffect(() => {
+                setApproved(selectedRequest.status === 'Approved');
+            }, [selectedId]);
+
+            const handleApprove = () => {
+                setApproved(true);
+                setRequests(prev => prev.map(r => 
+                    r.requestId === selectedId ? { ...r, status: "Approved" } : r
+                ));
+            };
+
+            return (
+                <div className="flex h-screen w-full overflow-hidden">
+                    {/* Sidebar / Inbox */}
+                    <div className="w-[35%] border-r border-slate-800 flex flex-col bg-[#020617]">
+                        <div className="p-6 border-b border-slate-800">
+                            <h1 className="text-xl font-bold text-white tracking-tight">Jeen.ai Inbox</h1>
+                            <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider">Decision Intelligence Hub</p>
+                        </div>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+                            {requests.map(req => (
+                                <div 
+                                    key={req.requestId}
+                                    onClick={() => setSelectedId(req.requestId)}
+                                    className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                                        selectedId === req.requestId ? 'bg-slate-800/60 border-cyan-500/50 shadow-lg' : 'bg-slate-900/40 border-slate-800 hover:bg-slate-800/30'
+                                    }`}
+                                >
+                                    <div className="flex justify-between items-start mb-2">
+                                        <span className="text-[10px] font-mono text-slate-500">{req.requestId}</span>
+                                        <span className={`text-[10px] px-2 py-0.5 rounded border ${req.priority === 'High' ? 'text-orange-400 border-orange-400/20 bg-orange-400/5' : 'text-slate-400 border-slate-700'}`}>
+                                            {req.priority} Priority
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="text-xl">{req.icon}</div>
+                                        <div>
+                                            <h3 className="text-sm font-semibold text-white">{req.treatment}</h3>
+                                            <p className="text-xs text-slate-500">{req.patientName}</p>
+                                        </div>
+                                    </div>
+                                    <div className={`mt-3 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded border ${
+                                        req.status === 'Approved' ? 'text-emerald-400 border-emerald-400/20 bg-emerald-400/5' : 'text-amber-400 border-amber-400/20'
+                                    }`}>
+                                        {req.status}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Main Content */}
+                    <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar relative p-8">
+                        <div className="absolute top-6 right-8 flex items-center gap-2">
+                            <span className="text-[10px] text-slate-500 font-bold tracking-widest uppercase">On-Prem Security Layer Active</span>
+                            <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse-slow"></div>
+                        </div>
+
+                        <div className="max-w-4xl">
+                            <p className="text-cyan-500 text-xs font-mono mb-2">Unified Decision View / {selectedId}</p>
+                            <h2 className="text-3xl font-bold text-white mb-6">Patient {selectedRequest.patientId.split(' ')[1]} Analysis</h2>
+
+                            <div className="grid grid-cols-2 gap-4 mb-8">
+                                <Snapshot title="Clinical Snapshot" source="EMR" items={[['Age', '45'], ['BMI', '32'], ['HbA1c', '8.5%']]} />
+                                <Snapshot title="Coverage & Limit" source="Payer" items={[['Plan', 'Gold Plus'], ['Limit', '$42,000'], ['Coverage', '80%']]} />
+                            </div>
+
+                            <div className={`p-8 rounded-2xl border transition-all duration-700 ${approved ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-slate-900/60 border-slate-700'}`}>
+                                <div className="flex justify-between mb-6">
+                                    <div>
+                                        <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">AI Recommendation</p>
+                                        <h3 className="text-xl font-bold text-white">Approve Treatment Initiation</h3>
+                                    </div>
+                                    <div className="bg-emerald-500/10 text-emerald-400 text-xs px-3 py-1 rounded-full border border-emerald-500/20 h-fit">Confidence: 98%</div>
+                                </div>
+                                <ul className="space-y-3 mb-8 text-sm text-slate-400">
+                                    <li className="flex gap-3 items-center"><Icon name="CheckCircle" className="text-cyan-500 w-4 h-4" /> Protocol alignment with DM-2023 verified.</li>
+                                    <li className="flex gap-3 items-center"><Icon name="CheckCircle" className="text-cyan-500 w-4 h-4" /> No drug-drug interactions detected.</li>
+                                    <li className="flex gap-3 items-center"><Icon name="CheckCircle" className="text-cyan-500 w-4 h-4" /> Financial eligibility confirmed.</li>
+                                </ul>
+
+                                <div className="flex gap-4">
+                                    <button 
+                                        onClick={handleApprove}
+                                        disabled={approved}
+                                        className={`px-8 py-3 rounded-xl font-bold transition-all ${approved ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-900/40'}`}
+                                    >
+                                        {approved ? 'Decision Logged' : 'Approve Decision'}
+                                    </button>
+                                    <button className="px-8 py-3 rounded-xl font-bold border border-slate-700 text-slate-400 hover:bg-slate-800">Escalate</button>
+                                </div>
+                            </div>
+
+                            <div className="mt-12">
+                                <h4 className="text-lg font-bold text-white mb-6">Digital Boardroom Memory</h4>
+                                <div className="space-y-6 relative pl-6 before:absolute before:left-0 before:top-2 before:bottom-2 before:w-px before:bg-slate-800">
+                                    {approved && <MemoryItem date="TODAY" title="GLP-1 Approval" outcome="Success" id={selectedId} isNew />}
+                                    <MemoryItem date="DEC 2025" title="HbA1c Adjustment" outcome="Improved" id="MEM-992" />
+                                    <MemoryItem date="JUN 2025" title="MRI Diagnostic" outcome="Normal" id="MEM-811" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Snapshot = ({ title, source, items }) => (
+            <div className="bg-slate-900/30 border border-slate-800 p-5 rounded-xl">
+                <div className="flex justify-between mb-4">
+                    <span className="text-xs font-bold text-slate-500">{title}</span>
+                    <span className="text-[9px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-400">{source}</span>
+                </div>
+                {items.map(([k, v]) => (
+                    <div key={k} className="flex justify-between text-sm py-1 border-b border-slate-800/50 last:border-0">
+                        <span className="text-slate-500">{k}</span>
+                        <span className="text-slate-200 font-mono">{v}</span>
+                    </div>
+                ))}
+            </div>
+        );
+
+        const MemoryItem = ({ date, title, outcome, id, isNew }) => (
+            <div className={`relative ${isNew ? 'animate-pulse' : ''}`}>
+                <div className="absolute -left-[27px] top-1.5 w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]"></div>
+                <div className="flex gap-4 items-center">
+                    <span className="text-[10px] font-mono text-slate-600 w-16">{date}</span>
+                    <span className="text-sm font-semibold text-slate-300">{title}</span>
+                    <span className="text-[10px] text-emerald-500 bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10">{outcome}</span>
+                    <span className="text-[9px] font-mono text-slate-700 ml-auto">ID: {id}</span>
+                </div>
+            </div>
+        );
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
