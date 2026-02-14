@@ -26,6 +26,38 @@
       const SAMPLE_TTD = [14, 12, 11, 10, 9, 8, 8, 7];
       const BASELINE_TTD = 22;
 
+      // global data-source health
+      const DATA_SOURCES = [
+        {
+          name: "EMR",
+          type: "Clinical Records",
+          status: "Healthy",
+          latency: "< 2s",
+          lastSync: "2026-02-14 23:39",
+        },
+        {
+          name: "ERP",
+          type: "Scheduling & Billing",
+          status: "Degraded",
+          latency: " ~5s",
+          lastSync: "2026-02-14 23:37",
+        },
+        {
+          name: "CRM",
+          type: "Provider Network",
+          status: "Healthy",
+          latency: "< 1s",
+          lastSync: "2026-02-14 23:38",
+        },
+        {
+          name: "Payer API",
+          type: "Eligibility & Benefits",
+          status: "Healthy",
+          latency: "< 3s",
+          lastSync: "2026-02-14 23:40",
+        },
+      ];
+
       const App = () => {
         const [requests, setRequests] = useState([
           {
@@ -291,6 +323,14 @@
         const insurance = selectedRequest?.insurance || {
           coverage: 0,
           remaining: 0,
+        };
+
+        const getSourceBadgeClasses = (status) => {
+          if (status === "Healthy")
+            return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/40";
+          if (status === "Degraded")
+            return "bg-amber-500/10 text-amber-400 border border-amber-500/40";
+          return "bg-red-500/10 text-red-400 border border-red-500/40";
         };
 
         return (
@@ -568,6 +608,54 @@
                     </div>
                   </div>
 
+                  {/* Global data source health */}
+                  <div className="mb-8 bg-slate-950/60 border border-slate-800 rounded-2xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                          Data Source Health
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          Organizational systems monitored continuously for
+                          connection & freshness.
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                        All critical sources reachable
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {DATA_SOURCES.map((s) => (
+                        <div
+                          key={s.name}
+                          className="flex items-center justify-between bg-slate-900/60 border border-slate-800 rounded-xl px-3 py-2"
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-mono text-slate-500">
+                                {s.name}
+                              </span>
+                              <span
+                                className={`text-[10px] px-2 py-0.5 rounded-full ${getSourceBadgeClasses(
+                                  s.status
+                                )}`}
+                              >
+                                {s.status}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-400">
+                              {s.type}
+                            </p>
+                          </div>
+                          <div className="text-right text-[10px] text-slate-500">
+                            <p>Last sync: {s.lastSync}</p>
+                            <p className="mt-0.5">Latency: {s.latency}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* AI Recommendation Card */}
                   <div
                     className={`p-6 rounded-2xl border transition-all ${
@@ -674,16 +762,16 @@
                     )}
                   </div>
 
-                  {/* Audit Trail + Timeline */}
+                  {/* Audit Trail + Timeline per case */}
                   <div className="mt-10 md:mt-12 grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-8 pb-10 md:pb-12">
                     {/* Audit trail */}
                     <div className="border border-slate-800 rounded-2xl p-4 bg-slate-950/40">
                       <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
                         <span>🔎</span>
-                        Audit Trail
+                        Case Audit Trail
                       </h3>
                       <p className="text-[11px] text-slate-400 mb-3">
-                        Sources scanned for this decision:
+                        Sources scanned specifically for this decision:
                       </p>
                       <div className="flex flex-wrap gap-2 mb-4">
                         {(selectedRequest.auditTrail?.sources || []).map((s) => (
