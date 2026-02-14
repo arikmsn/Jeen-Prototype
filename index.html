@@ -1,317 +1,179 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jeen.ai – Healthcare Decision Suite</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap");
-        body { 
-            font-family: "Inter", sans-serif; 
-            background: #020617; 
-            color: #e2e8f0; 
-            margin: 0; 
-            overflow: hidden; 
-        }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
-        
-        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+import React, { useState, useEffect } from 'react';
+import { 
+  CheckCircle, 
+  AlertCircle, 
+  Clock, 
+  User, 
+  ShieldCheck, 
+  Activity, 
+  FileText, 
+  ChevronRight, 
+  ExternalLink,
+  Info,
+  Database,
+  ArrowRight
+} from 'lucide-react';
 
-        .glass-card {
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(51, 65, 85, 0.4);
-        }
-    </style>
-</head>
-<body>
-    <div id="root"></div>
+/**
+ * NOTE FOR THE USER:
+ * I have added 'translate="no"' and lang="en" to the main container 
+ * to prevent Google Chrome from automatically translating this UI to Hebrew.
+ */
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+const App = () => {
+  const [requests, setRequests] = useState([
+    {
+      requestId: "TRT-APR-2026-0234",
+      patientName: "John Doe",
+      patientId: "Patient 1234",
+      treatment: "GLP-1 Therapy Initiation",
+      type: "Treatment",
+      icon: "🧪",
+      priority: "High",
+      status: "Pending",
+      submittedBy: "Dr. Sarah Cohen",
+      submittedAt: "2026-02-14 10:32"
+    },
+    {
+      requestId: "TRT-APR-2026-0235",
+      patientName: "Mary Smith",
+      patientId: "Patient 5678",
+      treatment: "MRI Brain Scan",
+      type: "Imaging",
+      icon: "🧠",
+      priority: "Medium",
+      status: "Pending",
+      submittedBy: "Dr. Alex Levy",
+      submittedAt: "2026-02-13 16:10"
+    }
+  ]);
 
-        const Icon = ({ name, className = "w-4 h-4" }) => {
-            const iconRef = useRef(null);
-            useEffect(() => {
-                if (window.lucide && iconRef.current) {
-                    iconRef.current.innerHTML = `<i data-lucide="${name}" class="${className}"></i>`;
-                    window.lucide.createIcons();
-                }
-            }, [name, className]);
-            return <span ref={iconRef} className="inline-flex" />;
-        };
+  const [selectedId, setSelectedId] = useState("TRT-APR-2026-0234");
+  const [showFactors, setShowFactors] = useState(false);
+  const [approved, setApproved] = useState(false);
+  const [showJson, setShowJson] = useState(false);
 
-        const INITIAL_DATA = [
-            {
-                id: "CASE-9921",
-                patient: "Alice Winston",
-                action: "Approve GLP-1 Therapy",
-                status: "Pending",
-                confidence: 98,
-                explanation: "Automated validation successful. Patient metrics meet all 2024 criteria for second-line diabetic intervention. Previous Metformin treatment showed insufficient glycemic control.",
-                factors: ["HbA1c > 8.5%", "Metformin intolerance", "BMI > 30 kg/m²", "In-network pharmacy"],
-                snapshot: { age: 45, bmi: 32, diagnosis: "Type 2 Diabetes", hba1c: "8.5%", plan: "Gold PPO" }
-            },
-            {
-                id: "CASE-9922",
-                patient: "James Miller",
-                action: "Diagnostic Brain MRI",
-                status: "Pending",
-                confidence: 84,
-                explanation: "Clinical symptoms correlate with scan necessity; however, system flagged a similar imaging procedure performed 10 months ago. Manual review recommended for policy exception.",
-                factors: ["Severe Chronic Migraine", "Neurological deficit", "Prior Scan Recency", "Specialist Referral"],
-                snapshot: { age: 54, bmi: 27, diagnosis: "Complex Migraine", hba1c: "N/A", plan: "Silver Plus" }
-            }
-        ];
+  const selectedRequest = requests.find(r => r.requestId === selectedId);
 
-        const App = () => {
-            const [requests, setRequests] = useState(INITIAL_DATA);
-            const [selectedId, setSelectedId] = useState(INITIAL_DATA[0].id);
-            const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-            const [modal, setModal] = useState(null);
-            const [note, setNote] = useState("");
+  const handleApprove = () => {
+    setApproved(true);
+    setRequests(prev => prev.map(r => 
+      r.requestId === selectedId ? { ...r, status: "Approved" } : r
+    ));
+  };
 
-            const current = requests.find(r => r.id === selectedId);
+  const getPriorityColor = (p) => {
+    switch (p) {
+      case 'High': return 'text-orange-400 bg-orange-400/10 border-orange-400/20';
+      case 'Medium': return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
+      case 'Low': return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
+      default: return 'text-slate-400 bg-slate-400/10 border-slate-400/20';
+    }
+  };
 
-            const submitDecision = (status, userNote = "") => {
-                setRequests(prev => prev.map(r => r.id === selectedId ? { ...r, status, userNote } : r));
-                setModal(null);
-                setNote("");
-            };
+  const getStatusColor = (s) => {
+    switch (s) {
+      case 'Approved': return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
+      case 'Pending': return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
+      default: return 'text-slate-400 bg-slate-400/10 border-slate-400/20';
+    }
+  };
 
-            const StatusBadge = ({ status }) => {
-                const colors = {
-                    Approved: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-                    Overridden: "text-rose-400 bg-rose-500/10 border-rose-500/20",
-                    Escalated: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-                    Pending: "text-amber-400 bg-amber-500/10 border-amber-500/20"
-                };
-                return <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-tighter ${colors[status] || colors.Pending}`}>{status}</span>;
-            };
+  return (
+    <div 
+      className="flex h-screen bg-[#020617] text-slate-200 font-sans overflow-hidden" 
+      lang="en" 
+      dir="ltr"
+      translate="no"
+    >
+      {/* Left Column: Inbox */}
+      <div className="w-[38%] border-r border-slate-800 flex flex-col">
+        <div className="p-6 border-b border-slate-800">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h1 className="text-xl font-bold text-white">Treatment Approval Inbox</h1>
+              <p className="text-sm text-slate-400 mt-1">AI-standardized clinical decision workflows.</p>
+            </div>
+          </div>
+        </div>
 
-            return (
-                <div className="flex flex-col md:flex-row h-screen w-full overflow-hidden bg-[#020617]">
-                    
-                    {/* Mobile Navigation Bar */}
-                    <div className="md:hidden flex items-center justify-between p-4 bg-slate-950 border-b border-slate-800 z-50">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-black text-sm">J</div>
-                            <span className="font-bold text-white tracking-tight">Jeen.ai</span>
-                        </div>
-                        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-slate-300">
-                            <Icon name={isSidebarOpen ? "X" : "Menu"} className="w-6 h-6" />
-                        </button>
-                    </div>
-
-                    {/* Left Navigation Sidebar */}
-                    <aside className={`
-                        fixed inset-0 z-40 transform transition-transform duration-300 md:relative md:translate-x-0
-                        w-full md:w-80 lg:w-96 border-r border-slate-800 bg-slate-950 flex flex-col
-                        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-                    `}>
-                        <div className="hidden md:flex items-center gap-3 p-8 border-b border-slate-900">
-                            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xl">J</div>
-                            <div>
-                                <h2 className="font-bold text-lg text-white leading-none tracking-tight">Jeen.ai</h2>
-                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Decision Portal</span>
-                            </div>
-                        </div>
-
-                        <div className="p-4 hidden md:block">
-                            <div className="relative group">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors"><Icon name="Search" className="w-4 h-4" /></span>
-                                <input type="text" placeholder="Search patient name..." className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-xs focus:border-blue-500/50 outline-none transition-all placeholder:text-slate-600" />
-                            </div>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest px-2 mb-4">Pending Requests</div>
-                            {requests.map(r => (
-                                <button key={r.id} onClick={() => { setSelectedId(r.id); setIsSidebarOpen(false); }} 
-                                     className={`w-full text-left p-4 rounded-2xl transition-all border group relative ${selectedId === r.id ? 'bg-blue-600/10 border-blue-500/40' : 'border-slate-800/40 hover:bg-slate-900 hover:border-slate-700'}`}>
-                                    <div className="flex justify-between items-start mb-2">
-                                        <span className="text-[10px] text-slate-500 font-mono tracking-tighter">{r.id}</span>
-                                        <StatusBadge status={r.status} />
-                                    </div>
-                                    <div className={`text-sm font-bold transition-colors ${selectedId === r.id ? 'text-blue-400' : 'text-slate-200 group-hover:text-white'}`}>{r.patient}</div>
-                                    <div className="flex items-center gap-2 mt-3">
-                                        <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
-                                            <div className="h-full bg-blue-500 rounded-full transition-all duration-700" style={{width: `${r.confidence}%`}}></div>
-                                        </div>
-                                        <span className="text-[10px] text-slate-500 font-bold">{r.confidence}% Match</span>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    </aside>
-
-                    {/* Main Analysis Engine */}
-                    <main className="flex-1 overflow-y-auto bg-[#020617] relative custom-scrollbar">
-                        <div className="max-w-5xl mx-auto p-6 md:p-12 lg:p-20 animate-fade-in space-y-10 md:space-y-16">
-                            
-                            {/* Profile Header */}
-                            <section className="flex flex-col md:flex-row justify-between items-start gap-8">
-                                <div className="space-y-3">
-                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-widest">
-                                        <Icon name="Activity" className="w-3 h-3" /> Clinical Review Mode
-                                    </div>
-                                    <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight">{current.patient}</h1>
-                                </div>
-                                <div className="flex flex-wrap gap-4 w-full md:w-auto">
-                                    <div className="glass-card px-6 py-4 rounded-2xl flex-1 md:flex-none">
-                                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Case ID</div>
-                                        <div className="text-sm font-mono font-bold text-slate-100">{current.id}</div>
-                                    </div>
-                                    <div className="glass-card px-6 py-4 rounded-2xl flex-1 md:flex-none">
-                                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Coverage</div>
-                                        <div className="text-sm font-bold text-blue-400">{current.snapshot.plan}</div>
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Vital Indicators */}
-                            <section className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-                                {[
-                                    { label: "Patient Age", value: `${current.snapshot.age} yrs`, icon: "User" },
-                                    { label: "BMI Metric", value: current.snapshot.bmi, icon: "Zap" },
-                                    { label: "Current A1c", value: current.snapshot.hba1c, icon: "Droplets" },
-                                    { label: "Primary Dx", value: current.snapshot.diagnosis, icon: "ClipboardList" }
-                                ].map((item, idx) => (
-                                    <div key={idx} className="glass-card p-5 md:p-6 rounded-3xl hover:border-slate-600 transition-all group cursor-default">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Icon name={item.icon} className="w-3.5 h-3.5 text-blue-500" />
-                                            <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{item.label}</span>
-                                        </div>
-                                        <div className="text-lg md:text-xl font-bold text-slate-100 group-hover:text-blue-400 transition-colors">{item.value}</div>
-                                    </div>
-                                ))}
-                            </section>
-
-                            {/* Recommendation Card */}
-                            <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                <div className="lg:col-span-2 space-y-8">
-                                    <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-8 md:p-12 rounded-[2rem] shadow-2xl relative overflow-hidden">
-                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_20px_rgba(37,99,235,0.6)]"></div>
-                                        
-                                        <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-12">
-                                            <div>
-                                                <div className="text-[10px] text-blue-400 font-black uppercase tracking-[0.25em] mb-3">System Recommendation</div>
-                                                <h2 className="text-3xl md:text-4xl font-black text-white leading-tight">{current.action}</h2>
-                                            </div>
-                                            <div className="bg-black/40 px-6 py-4 rounded-2xl border border-slate-800 backdrop-blur-md">
-                                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest text-center mb-1">Confidence</div>
-                                                <div className="text-3xl font-black text-emerald-400">{current.confidence}%</div>
-                                            </div>
-                                        </div>
-
-                                        {current.status === 'Pending' ? (
-                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                                <button onClick={() => submitDecision('Approved')} className="bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-blue-900/30 transition-all hover:-translate-y-1 active:scale-95">Approve Case</button>
-                                                <button onClick={() => setModal('Override')} className="bg-slate-800 hover:bg-slate-700 text-white py-5 rounded-2xl font-bold text-sm transition-all hover:-translate-y-1 active:scale-95 border border-slate-700">Deny / Override</button>
-                                                <button onClick={() => setModal('Escalate')} className="bg-slate-800 hover:bg-slate-700 text-white py-5 rounded-2xl font-bold text-sm transition-all hover:-translate-y-1 active:scale-95 border border-slate-700">Escalate Review</button>
-                                            </div>
-                                        ) : (
-                                            <div className="flex flex-col items-center py-10 bg-blue-500/5 rounded-[1.5rem] border border-blue-500/10 animate-fade-in">
-                                                <div className="flex items-center gap-4 text-2xl font-black text-white uppercase tracking-tight">
-                                                    <Icon name="CheckCircle" className="w-8 h-8 text-blue-500" />
-                                                    {current.status === 'Approved' ? 'Request Finalized' : `Status: ${current.status}`}
-                                                </div>
-                                                {current.userNote && (
-                                                    <div className="mt-6 px-8 py-4 bg-slate-900/50 rounded-xl border border-slate-800 max-w-md w-full">
-                                                        <span className="text-slate-500 text-[10px] font-bold uppercase block mb-2 tracking-widest">Reviewer Comment</span>
-                                                        <p className="text-slate-300 italic text-sm leading-relaxed">"{current.userNote}"</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="glass-card p-8 md:p-10 rounded-[2rem]">
-                                        <div className="flex items-center gap-3 mb-8">
-                                            <Icon name="SearchCode" className="w-5 h-5 text-blue-500" />
-                                            <h3 className="text-xs font-black text-slate-300 uppercase tracking-[0.2em]">Automated Rationale</h3>
-                                        </div>
-                                        <p className="text-slate-400 text-lg md:text-xl leading-relaxed font-medium italic">
-                                            "{current.explanation}"
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-8">
-                                    <div className="glass-card p-8 rounded-[2rem] h-full flex flex-col">
-                                        <h3 className="text-[10px] font-black text-slate-500 uppercase mb-8 tracking-[0.2em]">Decision Matrix</h3>
-                                        <div className="space-y-4 flex-1">
-                                            {current.factors.map((f, i) => (
-                                                <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-900/40 border border-slate-800/40 hover:border-blue-500/30 transition-colors">
-                                                    <span className="text-xs text-slate-300 font-semibold">{f}</span>
-                                                    <Icon name="Check" className="w-4 h-4 text-emerald-500" />
-                                                </div>
-                                            ))}
-                                        </div>
-                                        
-                                        <div className="mt-12 p-5 rounded-2xl bg-blue-600/5 border border-blue-500/10 flex items-start gap-3">
-                                            <Icon name="Info" className="w-5 h-5 text-blue-500 shrink-0" />
-                                            <div>
-                                                <div className="text-[10px] text-blue-400 font-bold uppercase mb-1">Audit Trail</div>
-                                                <p className="text-[11px] text-slate-500 leading-normal">
-                                                    Compliance verified against latest CMS policy guidelines for diagnostic necessity.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-                        </div>
-                    </main>
-
-                    {/* Decision Overlay */}
-                    {modal && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-                            <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onClick={() => setModal(null)}></div>
-                            <div className="relative w-full max-w-xl bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 shadow-3xl animate-fade-in">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <Icon name={modal === 'Override' ? 'AlertTriangle' : 'Users'} className={`w-6 h-6 ${modal === 'Override' ? 'text-rose-500' : 'text-amber-500'}`} />
-                                    <h3 className="text-2xl font-black text-white">
-                                        {modal === 'Override' ? 'Manual Denial' : 'Escalate To Board'}
-                                    </h3>
-                                </div>
-                                <p className="text-slate-400 text-sm mb-8">Provide required clinical justification to update the file for {current.patient}. This action is permanent and will be logged.</p>
-                                
-                                <textarea 
-                                    autoFocus
-                                    className="w-full h-44 bg-slate-950 border border-slate-800 rounded-2xl p-6 text-white text-sm outline-none focus:border-blue-500/50 transition-all resize-none mb-8 placeholder:text-slate-700"
-                                    placeholder="Enter detailed reasoning..."
-                                    value={note}
-                                    onChange={e => setNote(e.target.value)}
-                                ></textarea>
-                                
-                                <div className="flex flex-col sm:flex-row gap-4">
-                                    <button onClick={() => setModal(null)} className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-xs transition-all uppercase tracking-widest">Discard</button>
-                                    <button 
-                                        onClick={() => submitDecision(modal === 'Override' ? 'Overridden' : 'Escalated', note)}
-                                        disabled={!note.trim()}
-                                        className="flex-[2] py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-xl font-bold text-xs transition-all uppercase tracking-widest shadow-lg shadow-blue-900/20"
-                                    >
-                                        Finalize Decision
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {requests.map((req) => (
+            <div 
+              key={req.requestId}
+              onClick={() => { setSelectedId(req.requestId); setApproved(req.status === 'Approved'); }}
+              className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                selectedId === req.requestId 
+                ? 'bg-slate-800/60 border-cyan-500/50 shadow-lg' 
+                : 'bg-slate-900/40 border-slate-800 hover:border-slate-700'
+              }`}
+            >
+              <div className="flex justify-between items-start mb-2">
+                <span className="text-[10px] font-mono text-slate-500">{req.requestId}</span>
+                <div className={`px-2 py-0.5 rounded-full text-[10px] border font-medium ${getPriorityColor(req.priority)}`}>
+                  {req.priority}
                 </div>
-            );
-        };
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-xl shadow-inner">
+                  {req.icon}
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-white">{req.treatment}</h3>
+                  <p className="text-xs text-slate-400">{req.patientName} • {req.patientId}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
-        const root = ReactDOM.createRoot(document.getElementById("root"));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+      {/* Right Column: Decision Panel */}
+      <div className="flex-1 flex flex-col bg-[#020617] p-8 overflow-y-auto">
+        <div className="mb-8">
+          <p className="text-cyan-500 text-xs font-mono mb-1 underline">SYSTEM STATUS: ACTIVE</p>
+          <h2 className="text-2xl font-bold text-white mb-2">Clinical Decision Support – {selectedId}</h2>
+          <div className={`mt-4 inline-block px-3 py-1 rounded-md text-xs border font-medium ${getStatusColor(approved ? 'Approved' : 'Pending')}`}>
+            STATUS: {approved ? 'APPROVED' : 'PENDING REVIEW'}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-2">Patient Profile (EMR)</h4>
+                <div className="text-sm space-y-1">
+                    <p>Age: 45</p>
+                    <p>Diagnosis: Type 2 Diabetes</p>
+                </div>
+            </div>
+            <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-2">Policy Check (Payer)</h4>
+                <div className="text-sm space-y-1">
+                    <p>Coverage: 80% Eligible</p>
+                    <p>Financial Limit: Within Range</p>
+                </div>
+            </div>
+        </div>
+
+        <div className={`p-6 rounded-2xl border transition-all ${approved ? 'bg-emerald-500/10 border-emerald-500' : 'bg-slate-900 border-slate-700'}`}>
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-cyan-400" />
+                AI Recommendation: Approve Treatment
+            </h3>
+            <p className="text-sm text-slate-400 mb-6 italic">"Based on DM-2023 protocols and financial coverage, this request is highly standardized and safe for approval."</p>
+            <div className="flex gap-4">
+                <button 
+                    onClick={handleApprove}
+                    disabled={approved}
+                    className="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-2 rounded-lg font-bold disabled:bg-emerald-600/50"
+                >
+                    {approved ? 'Decision Recorded' : 'Approve Now'}
+                </button>
+            </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default App;
