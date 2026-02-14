@@ -20,7 +20,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-      const { useState, useEffect } = React;
+      const { useState } = React;
 
       // helper: fake TTD data in minutes
       const SAMPLE_TTD = [14, 12, 11, 10, 9, 8, 8, 7];
@@ -57,12 +57,26 @@
             auditTrail: {
               sources: ["EMR", "Payer API", "Lab Systems"],
               events: [
-                { ts: "2026-02-14 10:32", actor: "AI Agent", action: "Ingested EMR snapshot" },
-                { ts: "2026-02-14 10:33", actor: "AI Agent", action: "Queried payer benefits (Payer API)" },
-                { ts: "2026-02-14 10:34", actor: "AI Agent", action: "Generated GLP-1 protocol match explanation" },
+                {
+                  ts: "2026-02-14 10:32",
+                  actor: "AI Agent",
+                  action: "Ingested EMR snapshot",
+                },
+                {
+                  ts: "2026-02-14 10:33",
+                  actor: "AI Agent",
+                  action: "Queried payer benefits (Payer API)",
+                },
+                {
+                  ts: "2026-02-14 10:34",
+                  actor: "AI Agent",
+                  action: "Generated GLP-1 protocol match explanation",
+                },
               ],
             },
-            avgTTD: 8, // minutes
+            avgTTD: 8,
+            profile: { age: 45, bmi: 32 },
+            insurance: { coverage: 0.8, remaining: 42000 },
           },
           {
             requestId: "TRT-APR-2026-0235",
@@ -79,11 +93,68 @@
             auditTrail: {
               sources: ["EMR", "Imaging Archive"],
               events: [
-                { ts: "2026-02-13 16:10", actor: "Ordering Physician", action: "Submitted MRI indication" },
-                { ts: "2026-02-13 16:11", actor: "AI Agent", action: "Validated prior neuro-imaging" },
+                {
+                  ts: "2026-02-13 16:10",
+                  actor: "Ordering Physician",
+                  action: "Submitted MRI indication",
+                },
+                {
+                  ts: "2026-02-13 16:11",
+                  actor: "AI Agent",
+                  action: "Validated prior neuro-imaging",
+                },
               ],
             },
             avgTTD: 9,
+            profile: { age: 63, bmi: 29 },
+            insurance: { coverage: 0.9, remaining: 18500 },
+          },
+          {
+            requestId: "TRT-APR-2026-0451",
+            patientName: "Liam Nguyen",
+            patientId: "Patient 7742",
+            treatment: "AI‑Guided Anticoagulation Dosing",
+            type: "Medication",
+            icon: "💊",
+            priority: "High",
+            status: "Pending",
+            submittedBy: "Dr. Rachel Stein",
+            submittedAt: "2026-02-14 21:47",
+            history: [
+              {
+                date: "JAN 03, 2026",
+                title: "Atrial Fibrillation Diagnosis",
+                status: "Approved",
+                outcome:
+                  "Echocardiogram confirmed non-valvular AF; CHA2DS2-VASc score documented.",
+              },
+            ],
+            auditTrail: {
+              sources: ["EMR", "Lab Systems", "ERP"],
+              events: [
+                {
+                  ts: "2026-02-14 21:47",
+                  actor: "AI Agent",
+                  action:
+                    "Pulled INR trend and creatinine clearance from lab systems",
+                },
+                {
+                  ts: "2026-02-14 21:48",
+                  actor: "AI Agent",
+                  action:
+                    "Checked active medication list for drug–drug interactions",
+                },
+                {
+                  ts: "2026-02-14 21:49",
+                  actor: "AI Agent",
+                  action:
+                    "Simulated dosing curves and selected low‑bleed risk regimen",
+                },
+              ],
+            },
+            avgTTD: 6,
+            profile: { age: 71, bmi: 26 },
+            insurance: { coverage: 0.7, remaining: 9800 },
           },
           {
             requestId: "TRT-APR-2026-0112",
@@ -108,11 +179,21 @@
             auditTrail: {
               sources: ["EMR", "ERP"],
               events: [
-                { ts: "2026-01-20 09:00", actor: "AI Agent", action: "Checked post-op order set" },
-                { ts: "2026-01-20 09:01", actor: "AI Agent", action: "Verified coverage in ERP scheduling" },
+                {
+                  ts: "2026-01-20 09:00",
+                  actor: "AI Agent",
+                  action: "Checked post-op order set",
+                },
+                {
+                  ts: "2026-01-20 09:01",
+                  actor: "AI Agent",
+                  action: "Verified coverage in ERP scheduling",
+                },
               ],
             },
             avgTTD: 7,
+            profile: { age: 54, bmi: 28 },
+            insurance: { coverage: 0.75, remaining: 23500 },
           },
         ]);
 
@@ -205,6 +286,12 @@
         const timeSaved = Math.max(BASELINE_TTD - avgTTD, 0);
         const timeSavedPct =
           BASELINE_TTD > 0 ? Math.round((timeSaved / BASELINE_TTD) * 100) : 0;
+
+        const profile = selectedRequest?.profile || { age: "-", bmi: "-" };
+        const insurance = selectedRequest?.insurance || {
+          coverage: 0,
+          remaining: 0,
+        };
 
         return (
           <div className="flex flex-col md:flex-row h-screen bg-[#020617] text-slate-200 font-sans overflow-hidden">
@@ -370,17 +457,17 @@
                     </div>
                   </div>
 
-                  {/* Federated Data Grid + Usage Stats + Audit */}
+                  {/* Federated Data Grid + Usage Stats */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
                     <SnapshotCard title="Patient Profile" source="EMR">
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between text-slate-500">
                           <span>Age</span>
-                          <span className="text-slate-200">45</span>
+                          <span className="text-slate-200">{profile.age}</span>
                         </div>
                         <div className="flex justify-between text-slate-500">
                           <span>BMI</span>
-                          <span className="text-slate-200">32</span>
+                          <span className="text-slate-200">{profile.bmi}</span>
                         </div>
                       </div>
                     </SnapshotCard>
@@ -389,12 +476,14 @@
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between text-slate-500">
                           <span>Coverage</span>
-                          <span className="text-slate-200">80%</span>
+                          <span className="text-slate-200">
+                            {Math.round(insurance.coverage * 100)}%
+                          </span>
                         </div>
                         <div className="flex justify-between text-slate-500">
                           <span>Remaining</span>
                           <span className="text-emerald-400 font-mono">
-                            $42,000
+                            ${insurance.remaining.toLocaleString()}
                           </span>
                         </div>
                       </div>
@@ -408,30 +497,73 @@
                             Usage Stats
                           </p>
                           <p className="text-xs text-slate-400">
-                            Time-to-decision & savings
+                            Time-to-decision, savings & volume
                           </p>
                         </div>
-                        <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                          -{timeSaved}m ({timeSavedPct}%)
-                        </span>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                            -{timeSaved}m ({timeSavedPct}%)
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-500">
+                            {SAMPLE_TTD.length} recent cases
+                          </span>
+                        </div>
                       </div>
 
-                      {/* tiny line chart using simple divs */}
-                      <div className="h-14 flex items-end gap-1 mb-2">
-                        {SAMPLE_TTD.map((v, i) => {
-                          const h = 10 + (30 * (BASELINE_TTD - v)) / BASELINE_TTD;
-                          return (
-                            <div
-                              key={i}
-                              className="flex-1 bg-cyan-500/40 rounded-t"
-                              style={{ height: `${h}px` }}
-                            ></div>
-                          );
-                        })}
+                      {/* tiny bar chart + baseline line */}
+                      <div className="relative h-16 mb-2">
+                        <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-slate-700"></div>
+                        <div className="absolute inset-0 flex items-end gap-1">
+                          {SAMPLE_TTD.map((v, i) => {
+                            const h = 8 + (40 * (BASELINE_TTD - v)) / BASELINE_TTD;
+                            const isLatest = i === SAMPLE_TTD.length - 1;
+                            const isBetter = v <= avgTTD;
+                            const color = isLatest
+                              ? isBetter
+                                ? "bg-emerald-400"
+                                : "bg-amber-400"
+                              : "bg-cyan-500/60";
+
+                            return (
+                              <div
+                                key={i}
+                                className={`flex-1 rounded-t ${color}`}
+                                style={{ height: `${h}px` }}
+                              ></div>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                        <span>Baseline: {BASELINE_TTD}m</span>
-                        <span>Current: {avgTTD}m</span>
+
+                      <div className="flex justify-between items-center text-[10px] text-slate-500 mt-1">
+                        <div className="flex flex-col gap-0.5">
+                          <span>Baseline: {BASELINE_TTD}m</span>
+                          <span>
+                            Org avg: {Math.round((BASELINE_TTD + avgTTD) / 2)}m
+                          </span>
+                        </div>
+                        <div className="text-right flex flex-col gap-0.5">
+                          <span>Current: {avgTTD}m</span>
+                          <span
+                            className={
+                              timeSavedPct >= 50
+                                ? "text-emerald-400"
+                                : "text-slate-400"
+                            }
+                          >
+                            {timeSavedPct >= 50
+                              ? "Well above org average"
+                              : "Near org average"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 text-[11px] text-slate-400 flex justify-between">
+                        <span>Estimated time saved this week:</span>
+                        <span className="font-mono text-emerald-400">
+                          {Math.floor((timeSaved * SAMPLE_TTD.length) / 60)}h{" "}
+                          {(timeSaved * SAMPLE_TTD.length) % 60}m
+                        </span>
                       </div>
                     </div>
                   </div>
