@@ -1,27 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jeen.ai – Decision Intelligence Workspace</title>
+    <title>Jeen.ai – Desktop & Mobile Optimized</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
-        body { font-family: "Inter", sans-serif; direction: ltr; }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #020617; }
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap");
+        body { 
+            font-family: "Inter", sans-serif; 
+            background: #020617; 
+            color: #e2e8f0; 
+            margin: 0; 
+            overflow: hidden; /* Prevent double scrollbars */
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
-        .glow-cyan { box-shadow: 0 0 25px rgba(6, 182, 212, 0.15); }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #334155; }
+        
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .decision-transition { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Glassmorphism effect for Desktop Cards */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+        }
     </style>
 </head>
-<body class="bg-[#020617] text-slate-200 overflow-hidden text-left">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
@@ -31,316 +44,266 @@
             const iconRef = useRef(null);
             useEffect(() => {
                 if (window.lucide && iconRef.current) {
-                    iconRef.current.innerHTML = "";
-                    const span = document.createElement("span");
-                    span.setAttribute("data-lucide", name);
-                    iconRef.current.appendChild(span);
-                    window.lucide.createIcons({ attrs: { class: className } });
+                    iconRef.current.innerHTML = `<i data-lucide="${name}" class="${className}"></i>`;
+                    window.lucide.createIcons();
                 }
             }, [name, className]);
-            return <span ref={iconRef} className="inline-flex items-center" />;
+            return <span ref={iconRef} className="inline-flex" />;
         };
 
-        const initialRequests = [
+        const DATA = [
             {
-                id: "TRT-APR-2026-0234",
-                patient: "Alice Winston",
-                patientId: "P-1234",
-                action: "GLP-1 Therapy Initiation",
+                id: "TRT-0234",
+                patient: "אליס וינסטון",
+                action: "טיפול GLP-1",
                 status: "Pending",
                 confidence: 98,
-                timeSaved: "1.2h",
-                factors: ["HbA1c > 8.5", "Metformin failure", "Policy compliant", "Low readmission risk", "Coverage confirmed"],
-                snapshot: {
-                    profile: { age: 45, bmi: 32, comorbidities: "Hypertension" },
-                    clinical: { diagnosis: "Type 2 Diabetes", hba1c: "8.5%", protocol: "DM-2023" },
-                    insurance: { coverage: "80%", limit: "$42,000", plan: "Gold Plus" }
-                },
-                explanation: "Automated verification successful. Patient clinical markers align with Step-Up protocol DM-2023. Financial and policy thresholds cleared via payer API integration.",
-                sources: ["EMR", "Payer Portal", "Pharmacy DB"],
-                memory: ["2025-12: Approved Dose Adj (HbA1c improvement)", "2025-06: Approved Imaging (Clear)"]
+                explanation: "אימות אוטומטי הצליח. המדדים הקליניים תואמים לפרוטוקול הטיפול המעודכן לשנת 2024.",
+                factors: ["HbA1c > 8.5", "כישלון בקו ראשון (Metformin)", "BMI > 30", "כיסוי ביטוחי מאושר"],
+                snapshot: { age: 45, bmi: 32, diagnosis: "סוכרת סוג 2", hba1c: "8.5%", plan: "גולד פלוס" }
             },
             {
-                id: "TRT-APR-2026-0235",
-                patient: "James Miller",
-                patientId: "P-5678",
-                action: "Brain MRI Approval",
+                id: "TRT-0235",
+                patient: "ג'יימס מילר",
+                action: "אישור MRI מוח",
                 status: "Pending",
                 confidence: 84,
-                timeSaved: "0.9h",
-                factors: ["Persistent symptoms", "Neuro deficit noted", "Guideline mismatch", "High cost item", "Recent scan 11m ago"],
-                snapshot: {
-                    profile: { age: 54, bmi: 29, comorbidities: "None" },
-                    clinical: { diagnosis: "Neurological Deficit", hba1c: "N/A", protocol: "NEURO-01" },
-                    insurance: { coverage: "90%", limit: "$58,000", plan: "Neuro Care" }
-                },
-                explanation: "Partial match. Symptoms justify imaging per protocol NEURO-01, but recent history shows a similar scan 11 months ago. Payer policy usually requires 12 months interval.",
-                sources: ["Telemedicine Logs", "Imaging Guidelines", "Claims History"],
-                memory: ["2025-09: Brain MRI (Approved - Initial scan)"]
+                explanation: "ישנה התאמה קלינית גבוהה, אולם קיימת בדיקה דומה מלפחות מ-12 חודשים במערכת.",
+                factors: ["סימפטומים נוירולוגיים", "המלצת מומחה", "חריגה מתקופת צינון", "צורך באבחנה מבדלת"],
+                snapshot: { age: 54, bmi: 29, diagnosis: "מיגרנות כרוניות", hba1c: "N/A", plan: "פרימיום" }
             }
         ];
 
         const App = () => {
-            const [requests, setRequests] = useState(initialRequests);
-            const [selectedId, setSelectedId] = useState(initialRequests[0].id);
-            const [modal, setModal] = useState({ open: false, type: null });
-            const [justification, setJustification] = useState("");
+            const [requests, setRequests] = useState(DATA);
+            const [selectedId, setSelectedId] = useState(DATA[0].id);
+            const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+            const [modal, setModal] = useState(null);
+            const [note, setNote] = useState("");
 
-            const current = requests.find((r) => r.id === selectedId);
+            const current = requests.find(r => r.id === selectedId);
 
-            const handleDecision = (id, newStatus, note = "") => {
-                const now = new Date().toISOString().split('T')[0];
-                setRequests(prev => prev.map(r => {
-                    if (r.id === id) {
-                        const newMemoryEntry = `${now} – ${r.action} – ${newStatus} ${note ? `(${note})` : ''}`;
-                        return { 
-                            ...r, 
-                            status: newStatus, 
-                            userNote: note,
-                            memory: [...r.memory, newMemoryEntry]
-                        };
-                    }
-                    return r;
-                }));
-                setModal({ open: false, type: null });
-                setJustification("");
+            const submitDecision = (status, userNote = "") => {
+                setRequests(prev => prev.map(r => r.id === selectedId ? { ...r, status, userNote } : r));
+                setModal(null);
+                setNote("");
             };
 
-            const getStatusColor = (status) => {
-                switch(status) {
-                    case 'Approved': return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-                    case 'Overridden': return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
-                    case 'Escalated': return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
-                    default: return 'text-slate-400 bg-slate-800/40 border-slate-700/50';
-                }
-            };
-
-            const getStatusIcon = (status) => {
-                switch(status) {
-                    case 'Approved': return 'CheckCircle';
-                    case 'Overridden': return 'XCircle';
-                    case 'Escalated': return 'ShieldAlert';
-                    default: return 'Clock';
-                }
+            const StatusBadge = ({ status }) => {
+                const cfg = {
+                    Approved: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+                    Overridden: "text-rose-400 bg-rose-500/10 border-rose-500/20",
+                    Escalated: "text-amber-400 bg-amber-500/10 border-amber-500/20",
+                    Pending: "text-amber-400 bg-amber-500/10 border-amber-500/20"
+                };
+                return <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg[status] || cfg.Pending}`}>{status}</span>;
             };
 
             return (
-                <div className="flex h-screen w-full bg-[#020617] select-none text-left">
-                    {/* Sidebar */}
-                    <div className="w-80 border-r border-slate-800 flex flex-col bg-[#030712] z-20">
-                        <div className="p-6 border-b border-slate-800 flex items-center gap-3">
-                            <div className="w-9 h-9 bg-cyan-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-cyan-500/20">J</div>
+                <div className="flex flex-col md:flex-row h-screen w-full overflow-hidden bg-[#020617]">
+                    
+                    {/* Mobile Header (Visible only on small screens) */}
+                    <div className="md:hidden flex items-center justify-between p-4 bg-slate-950 border-b border-slate-800 z-50">
+                        <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 bg-blue-600 rounded flex items-center justify-center text-white font-black text-sm">J</div>
+                            <span className="font-bold tracking-tight text-white">Jeen.ai</span>
+                        </div>
+                        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-slate-300">
+                            <Icon name={isSidebarOpen ? "X" : "Menu"} className="w-6 h-6" />
+                        </button>
+                    </div>
+
+                    {/* Sidebar Container */}
+                    <aside className={`
+                        fixed inset-0 z-40 transform transition-transform duration-300 md:relative md:translate-x-0
+                        w-full md:w-80 lg:w-96 border-l border-slate-800 bg-slate-950 flex flex-col
+                        ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
+                    `}>
+                        {/* Sidebar Header (Desktop) */}
+                        <div className="hidden md:flex items-center gap-3 p-8 border-b border-slate-900">
+                            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-900/20">J</div>
                             <div>
-                                <h1 className="text-sm font-bold text-white tracking-tight">Jeen.ai</h1>
-                                <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Decision Workspace</p>
+                                <h2 className="font-bold text-lg text-white leading-none">Jeen.ai</h2>
+                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Decision Hub</span>
                             </div>
                         </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
-                            {requests.map((req) => (
-                                <div key={req.id} onClick={() => setSelectedId(req.id)} 
-                                     className={`p-3 rounded-xl border transition-all cursor-pointer ${selectedId === req.id ? "bg-slate-800/40 border-cyan-500/40 glow-cyan" : "border-transparent hover:bg-slate-900/40"}`}>
-                                    <div className="flex justify-between items-start mb-1">
-                                        <span className="text-[9px] font-mono text-slate-600">{req.id}</span>
-                                        <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-bold uppercase ${req.status === 'Approved' ? 'text-emerald-400 bg-emerald-500/10' : req.status === 'Pending' ? 'text-amber-400 bg-amber-500/10' : 'text-rose-400 bg-rose-500/10'}`}>
-                                            {req.status}
-                                        </span>
+
+                        {/* Search / Filters placeholder for Desktop */}
+                        <div className="p-4 hidden md:block">
+                            <div className="relative">
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"><Icon name="Search" className="w-4 h-4" /></span>
+                                <input type="text" placeholder="חיפוש מטופל..." className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 pr-10 pl-4 text-xs focus:border-blue-500 outline-none transition-all" />
+                            </div>
+                        </div>
+
+                        {/* Request List */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                            {requests.map(r => (
+                                <button key={r.id} onClick={() => { setSelectedId(r.id); setIsSidebarOpen(false); }} 
+                                     className={`w-full text-right p-4 rounded-xl transition-all border group relative ${selectedId === r.id ? 'bg-blue-600/10 border-blue-500/50' : 'border-slate-800/50 hover:bg-slate-900 hover:border-slate-700'}`}>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <span className="text-[10px] text-slate-500 font-mono">{r.id}</span>
+                                        <StatusBadge status={r.status} />
                                     </div>
-                                    <h3 className="text-[11px] font-bold text-slate-200 leading-tight">{req.action}</h3>
-                                    <div className="flex justify-between mt-2 items-center">
-                                        <p className="text-[10px] text-slate-500 truncate w-32">{req.patient}</p>
-                                        <span className="text-[9px] text-cyan-500/80 font-bold">{req.confidence}%</span>
+                                    <div className={`text-sm font-bold transition-colors ${selectedId === r.id ? 'text-blue-400' : 'text-slate-200 group-hover:text-white'}`}>{r.patient}</div>
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
+                                            <div className="h-full bg-blue-500 rounded-full" style={{width: `${r.confidence}%`}}></div>
+                                        </div>
+                                        <span className="text-[10px] text-slate-500 font-bold">{r.confidence}%</span>
                                     </div>
-                                </div>
+                                </button>
                             ))}
                         </div>
-                        <div className="p-4 border-t border-slate-800 bg-slate-950/80">
-                            <div className="flex items-center justify-between text-[10px] font-black uppercase text-slate-500 mb-2 tracking-tighter">
-                                <span>Efficiency Index</span>
-                                <span className="text-emerald-500">+2.1h Saved</span>
-                            </div>
-                            <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                <div className="w-[78%] h-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                            </div>
-                        </div>
-                    </div>
+                    </aside>
 
                     {/* Main Content Area */}
-                    <div className="flex-1 flex flex-col overflow-hidden relative">
-                        {/* Header */}
-                        <div className="p-8 pb-4 flex justify-between items-start animate-fade-in">
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-[10px] text-cyan-500 font-bold uppercase tracking-[0.2em]">Clinical Decision Hub</span>
-                                    <span className="text-slate-800 text-xs">/</span>
-                                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">{current.id}</span>
+                    <main className="flex-1 overflow-y-auto bg-[#020617] relative custom-scrollbar">
+                        <div className="max-w-5xl mx-auto p-4 md:p-12 lg:p-16 animate-fade-in space-y-8 md:space-y-12">
+                            
+                            {/* Header Section */}
+                            <section className="flex flex-col md:flex-row justify-between items-start gap-6">
+                                <div className="space-y-2">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-wider">
+                                        <Icon name="User" className="w-3 h-3" /> תיק מטופל פעיל
+                                    </div>
+                                    <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tight">{current.patient}</h1>
                                 </div>
-                                <h2 className="text-3xl font-extrabold text-white tracking-tight leading-tight">Reviewing: {current.patient}</h2>
-                            </div>
-                            <div className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl flex items-center gap-2 text-[10px] font-bold text-slate-400 backdrop-blur-md">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                SECURE NODE
-                            </div>
-                        </div>
+                                <div className="flex flex-wrap gap-3 md:gap-4 w-full md:w-auto">
+                                    <div className="glass-card px-6 py-3 rounded-2xl flex-1 md:flex-none min-w-[120px]">
+                                        <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">מזהה</div>
+                                        <div className="text-sm font-mono font-bold text-white">{current.id}</div>
+                                    </div>
+                                    <div className="glass-card px-6 py-3 rounded-2xl flex-1 md:flex-none min-w-[120px]">
+                                        <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">סטטוס</div>
+                                        <div className="text-sm font-bold text-blue-400">{current.status}</div>
+                                    </div>
+                                </div>
+                            </section>
 
-                        <div className="flex-1 overflow-y-auto p-8 pt-4 custom-scrollbar">
-                            <div className="max-w-6xl grid grid-cols-12 gap-6">
-                                
-                                {/* Analysis Column */}
-                                <div className="col-span-8 space-y-6">
-                                    
-                                    {/* Unified Snapshot */}
-                                    <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-6">
-                                        <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-4">Unified Patient Snapshot</p>
-                                        <div className="grid grid-cols-3 gap-4">
-                                            <SnapshotCard title="Profile" items={[["Age", current.snapshot.profile.age], ["BMI", current.snapshot.profile.bmi], ["Comorb", current.snapshot.profile.comorbidities]]} />
-                                            <SnapshotCard title="Clinical" items={[["Diagnosis", current.snapshot.clinical.diagnosis], ["Protocol", current.snapshot.clinical.protocol], ["HbA1c", current.snapshot.clinical.hba1c]]} />
-                                            <SnapshotCard title="Insurance" items={[["Coverage", current.snapshot.insurance.coverage], ["Plan", current.snapshot.insurance.plan], ["Limit", current.snapshot.insurance.limit]]} />
+                            {/* Info Grid - Responsive Columns */}
+                            <section className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                                {[
+                                    { label: "גיל", value: current.snapshot.age, icon: "Calendar" },
+                                    { label: "BMI", value: current.snapshot.bmi, icon: "Activity" },
+                                    { label: "A1c", value: current.snapshot.hba1c, icon: "Droplets" },
+                                    { label: "תוכנית ביטוח", value: current.snapshot.plan, icon: "Shield" }
+                                ].map((item, idx) => (
+                                    <div key={idx} className="glass-card p-4 md:p-6 rounded-2xl hover:border-slate-600 transition-colors group">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Icon name={item.icon} className="w-3 h-3 text-blue-500" />
+                                            <span className="text-[10px] text-slate-500 font-bold uppercase">{item.label}</span>
                                         </div>
+                                        <div className="text-lg md:text-xl font-bold text-slate-100 group-hover:text-white transition-colors">{item.value}</div>
+                                    </div>
+                                ))}
+                            </section>
+
+                            {/* Main Recommendation Logic */}
+                            <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+                                <div className="lg:col-span-2 space-y-6 md:space-y-8">
+                                    {/* Action Card */}
+                                    <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-6 md:p-10 rounded-3xl shadow-2xl relative overflow-hidden group">
+                                        <div className="absolute top-0 left-0 w-full h-1 bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.5)]"></div>
+                                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 md:mb-12">
+                                            <div>
+                                                <div className="text-[10px] text-blue-400 font-black uppercase tracking-widest mb-2">המלצת מערכת (AI Recommended)</div>
+                                                <h2 className="text-2xl md:text-4xl font-bold text-white">{current.action}</h2>
+                                            </div>
+                                            <div className="flex items-center gap-4 bg-black/40 p-4 rounded-2xl border border-slate-800">
+                                                <div className="text-center">
+                                                    <div className="text-[10px] text-slate-500 font-bold uppercase">רמת ביטחון</div>
+                                                    <div className="text-2xl md:text-3xl font-black text-emerald-400">{current.confidence}%</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {current.status === 'Pending' ? (
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                                <button onClick={() => submitDecision('Approved')} className="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold text-sm shadow-lg shadow-blue-900/20 transition-all active:scale-95">אישור מיידי</button>
+                                                <button onClick={() => setModal('Override')} className="bg-slate-800 hover:bg-slate-700 text-white py-4 rounded-xl font-bold text-sm transition-all active:scale-95">שינוי החלטה</button>
+                                                <button onClick={() => setModal('Escalate')} className="bg-slate-800 hover:bg-slate-700 text-white py-4 rounded-xl font-bold text-sm transition-all active:scale-95">הסלמה למומחה</button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center py-8 bg-blue-500/5 rounded-2xl border border-blue-500/10">
+                                                <div className="flex items-center gap-3 text-2xl font-black text-white uppercase tracking-tighter">
+                                                    <Icon name="CheckCircle" className="w-8 h-8 text-blue-500" />
+                                                    {current.status === 'Approved' ? 'הבקשה אושרה' : current.status}
+                                                </div>
+                                                {current.userNote && (
+                                                    <div className="mt-4 px-6 text-center">
+                                                        <span className="text-slate-500 text-[10px] font-bold uppercase block mb-1">הערת בודק:</span>
+                                                        <p className="text-slate-300 italic text-sm">"{current.userNote}"</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {/* Action Hub - THE RECOMMENDATION / FINAL STATE */}
-                                    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500 opacity-[0.03] blur-3xl pointer-events-none"></div>
+                                    {/* Clinical Rationale */}
+                                    <div className="glass-card p-6 md:p-8 rounded-3xl">
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <Icon name="FileText" className="w-4 h-4 text-blue-500" />
+                                            <h3 className="text-sm font-bold text-slate-200 uppercase tracking-widest">רציונל קליני וניתוח נתונים</h3>
+                                        </div>
+                                        <p className="text-slate-400 text-base md:text-lg leading-relaxed italic">
+                                            "{current.explanation}"
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Sidebar Stats / Factors */}
+                                <div className="space-y-6">
+                                    <div className="glass-card p-6 rounded-3xl h-full">
+                                        <h3 className="text-xs font-bold text-slate-500 uppercase mb-6 tracking-widest">מדדי החלטה</h3>
+                                        <div className="space-y-4">
+                                            {current.factors.map((f, i) => (
+                                                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-900/30 border border-slate-800/50">
+                                                    <span className="text-xs text-slate-300 font-medium">{f}</span>
+                                                    <Icon name="ChevronLeft" className="w-3 h-3 text-blue-600" />
+                                                </div>
+                                            ))}
+                                        </div>
                                         
-                                        <div className="flex items-center justify-between mb-8 relative z-10">
-                                            <div className="flex items-center gap-5 flex-1 min-w-0">
-                                                <div className="w-14 h-14 bg-cyan-600/10 border border-cyan-500/20 rounded-2xl flex-shrink-0 flex items-center justify-center text-cyan-400 shadow-inner group-hover:scale-105 transition-transform">
-                                                    <Icon name="Brain" className="w-8 h-8" />
-                                                </div>
-                                                <div className="min-w-0 pr-4">
-                                                    <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1 truncate">Jeen AI Suggested Action</p>
-                                                    <h3 className="text-2xl font-bold text-white tracking-tight truncate">Approve Therapy Initiation</h3>
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="bg-emerald-500/10 border border-emerald-500/20 px-6 py-4 rounded-2xl text-center flex-shrink-0 flex flex-col items-center justify-center min-w-[100px] h-[80px]">
-                                                <p className="text-[9px] text-emerald-500 uppercase font-black tracking-tighter mb-1">Confidence</p>
-                                                <div className="text-3xl font-black text-emerald-400 leading-none">
-                                                    {current.confidence}<span className="text-xl ml-0.5">%</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* CONDITIONAL RENDERING: Buttons vs Selected State */}
-                                        <div className="relative z-10 decision-transition">
-                                            {current.status === 'Pending' ? (
-                                                <div className="grid grid-cols-3 gap-3 animate-fade-in">
-                                                    <button 
-                                                        onClick={() => handleDecision(current.id, 'Approved')}
-                                                        className="py-4 rounded-2xl font-black text-xs flex flex-col items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/40 transition-all active:scale-95"
-                                                    >
-                                                        <Icon name="CheckCircle" className="w-5 h-5 mb-0.5" />
-                                                        APPROVE
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => setModal({ open: true, type: 'Override' })}
-                                                        className="py-4 rounded-2xl font-black text-xs flex flex-col items-center gap-1 bg-slate-800 hover:bg-rose-950/40 hover:text-rose-400 border border-rose-500/10 transition-all text-slate-300 active:scale-95"
-                                                    >
-                                                        <Icon name="XCircle" className="w-5 h-5 mb-0.5" />
-                                                        OVERRIDE
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => setModal({ open: true, type: 'Escalate' })}
-                                                        className="py-4 rounded-2xl font-black text-xs flex flex-col items-center gap-1 bg-slate-800 hover:bg-amber-950/40 hover:text-amber-400 border border-amber-500/10 transition-all text-slate-300 active:scale-95"
-                                                    >
-                                                        <Icon name="ShieldAlert" className="w-5 h-5 mb-0.5" />
-                                                        ESCALATE
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="animate-fade-in flex flex-col items-center justify-center py-4 bg-slate-950/50 border border-slate-800/50 rounded-2xl">
-                                                    <div className={`flex items-center gap-3 px-8 py-3 rounded-full border shadow-sm ${getStatusColor(current.status)}`}>
-                                                        <Icon name={getStatusIcon(current.status)} className="w-6 h-6" />
-                                                        <span className="text-lg font-black uppercase tracking-widest">{current.status}</span>
-                                                    </div>
-                                                    {current.userNote && (
-                                                        <p className="mt-4 text-[11px] text-slate-500 italic max-w-md text-center px-4">
-                                                            " {current.userNote} "
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Why Panel */}
-                                    <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 border-l-4 border-l-cyan-500 relative">
-                                        <h4 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 mb-6">
-                                            <Icon name="ScrollText" className="text-cyan-500" /> Evidence & Decision Rationale
-                                        </h4>
-                                        <div className="mb-6">
-                                            <div className="grid grid-cols-2 gap-3">
-                                                {current.factors.map(f => (
-                                                    <div key={f} className="text-[11px] text-slate-300 flex items-center gap-2 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/50">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_5px_rgba(6,182,212,0.5)]"></div>
-                                                        <span>{f}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <div className="bg-slate-950/80 p-6 rounded-2xl border border-slate-800/50 relative">
-                                            <Icon name="TextQuote" className="absolute top-4 right-4 text-slate-900 w-12 h-12 pointer-events-none" />
-                                            <p className="text-sm text-slate-400 leading-relaxed font-medium italic relative z-10">"{current.explanation}"</p>
-                                        </div>
-                                        <div className="flex gap-2 mt-4 justify-end">
-                                            {current.sources.map(s => (
-                                                <span key={s} className="px-2.5 py-1 bg-slate-800/50 text-[9px] text-slate-500 rounded-lg border border-slate-800 font-bold uppercase">{s}</span>
-                                            ))}
+                                        <div className="mt-8 p-4 rounded-2xl bg-blue-600/5 border border-blue-500/10">
+                                            <div className="text-[10px] text-blue-400 font-bold uppercase mb-2">תובנת מערכת</div>
+                                            <p className="text-[11px] text-slate-500 leading-relaxed underline decoration-blue-500/30 underline-offset-4">
+                                                ההחלטה מבוססת על הצלבת נתוני ה-EHR עם הנחיות ה-FDA האחרונות.
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Right Column: Boardroom Memory */}
-                                <div className="col-span-4 space-y-6">
-                                    <div className="bg-slate-900/30 border border-slate-800 rounded-2xl p-6 flex flex-col h-full max-h-[400px]">
-                                        <h4 className="text-[10px] font-black text-slate-500 uppercase mb-4 tracking-widest flex justify-between items-center">
-                                            Boardroom Memory
-                                            <Icon name="History" className="w-3 h-3 opacity-50" />
-                                        </h4>
-                                        <div className="space-y-4 overflow-y-auto custom-scrollbar flex-1 pr-1">
-                                            {current.memory.map((m, i) => (
-                                                <div key={i} className="flex gap-3 text-[11px] animate-fade-in border-l border-slate-800 pl-3 relative">
-                                                    <div className={`absolute -left-[4px] top-1.5 w-2 h-2 rounded-full ${m.includes('Approved') ? 'bg-emerald-500' : m.includes('Overridden') ? 'bg-rose-500' : m.includes('Escalated') ? 'bg-amber-500' : 'bg-slate-600'} shadow-[0_0_5px_rgba(0,0,0,0.5)]`}></div>
-                                                    <p className="text-slate-400 leading-snug">{m}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="p-6 bg-gradient-to-br from-cyan-950/30 via-slate-950 to-slate-950 border border-cyan-500/10 rounded-2xl relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 p-3 opacity-20"><Icon name="Zap" className="text-cyan-400 w-8 h-8" /></div>
-                                        <p className="text-[10px] font-black text-cyan-500 mb-1 uppercase tracking-widest">Inference ROI</p>
-                                        <p className="text-4xl font-black text-white tracking-tighter">+{current.timeSaved}</p>
-                                        <p className="text-[11px] text-slate-500 mt-2 leading-relaxed italic">Decision latency reduced by automated data cross-referencing.</p>
-                                    </div>
-                                </div>
-
-                            </div>
+                            </section>
                         </div>
-                    </div>
+                    </main>
 
-                    {/* Modal */}
-                    {modal.open && (
-                        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                            <div className="bg-[#030712] border border-slate-800 w-full max-w-md rounded-[2.5rem] p-10 animate-fade-in shadow-3xl text-left">
-                                <h3 className="text-2xl font-bold text-white mb-2">Justify {modal.type}</h3>
-                                <p className="text-sm text-slate-400 mb-8 leading-relaxed">System policy requires a mandatory note when overriding or escalating AI-driven recommendations for audit trails.</p>
+                    {/* Decision Modal */}
+                    {modal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                            <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md" onClick={() => setModal(null)}></div>
+                            <div className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl animate-fade-in">
+                                <h3 className="text-xl font-bold text-white mb-2">
+                                    {modal === 'Override' ? 'שינוי המלצת המערכת' : 'הסלמת הבקשה'}
+                                </h3>
+                                <p className="text-slate-400 text-sm mb-6">יש להזין נימוק קליני לביצוע הפעולה עבור המטופל {current.patient}.</p>
                                 
                                 <textarea 
                                     autoFocus
-                                    className="w-full h-40 bg-slate-950 border border-slate-800 rounded-2xl p-5 text-sm text-slate-300 focus:border-cyan-500 outline-none transition-all custom-scrollbar resize-none shadow-inner"
-                                    placeholder="Enter clinical justification or policy exception reason..."
-                                    value={justification}
-                                    onChange={(e) => setJustification(e.target.value)}
+                                    className="w-full h-40 bg-slate-950 border border-slate-800 rounded-2xl p-4 text-white text-sm outline-none focus:border-blue-500 transition-all resize-none mb-6"
+                                    placeholder="הקלד כאן את הנימוק..."
+                                    value={note}
+                                    onChange={e => setNote(e.target.value)}
                                 ></textarea>
                                 
-                                <div className="flex gap-4 mt-10">
-                                    <button onClick={() => setModal({ open: false, type: null })} className="flex-1 py-4 bg-slate-900 text-slate-400 rounded-2xl font-bold text-sm hover:bg-slate-800 transition-colors">Cancel</button>
+                                <div className="flex gap-3">
+                                    <button onClick={() => setModal(null)} className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-xs transition-colors">ביטול</button>
                                     <button 
-                                        onClick={() => handleDecision(current.id, modal.type === 'Override' ? 'Overridden' : 'Escalated', justification)}
-                                        disabled={!justification.trim()}
-                                        className="flex-1 py-4 bg-cyan-600 disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-2xl font-bold text-sm shadow-lg shadow-cyan-900/20 hover:bg-cyan-500 transition-all"
-                                    >Confirm Action</button>
+                                        onClick={() => submitDecision(modal === 'Override' ? 'Overridden' : 'Escalated', note)}
+                                        disabled={!note.trim()}
+                                        className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-20 text-white rounded-xl font-bold text-xs transition-colors"
+                                    >
+                                        אישור ושליחה
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -348,20 +311,6 @@
                 </div>
             );
         };
-
-        const SnapshotCard = ({ title, items }) => (
-            <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/40 hover:border-slate-700/60 transition-colors">
-                <p className="text-[9px] font-black text-slate-600 uppercase mb-3 tracking-widest">{title}</p>
-                <div className="space-y-2.5">
-                    {items.map(([l, v]) => (
-                        <div key={l} className="flex justify-between text-[10px] items-center">
-                            <span className="text-slate-500 font-medium">{l}</span>
-                            <span className="text-slate-300 font-bold bg-slate-900/50 px-1.5 py-0.5 rounded leading-none">{v}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
 
         const root = ReactDOM.createRoot(document.getElementById("root"));
         root.render(<App />);
